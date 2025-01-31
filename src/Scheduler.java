@@ -17,8 +17,8 @@ public class Scheduler implements Runnable {
     public FireEvent getCurrentEvent(){return current;}
 
     /**
-     * Adds an event to the
-     * @param event
+     * Adds an event to the scheduler
+     * @param event the event to be added
      */
     public synchronized void addEvent(FireEvent event){
         while(current != null) {
@@ -31,7 +31,10 @@ public class Scheduler implements Runnable {
         notifyAll();
     }
 
-
+    /**
+     * Get the event stored
+     * @return the event stored
+     */
     public synchronized FireEvent getEvent(){
         while (current == null) {
             try {
@@ -45,6 +48,10 @@ public class Scheduler implements Runnable {
 
     }
 
+    /**
+     * Notify all processes that an event was handled, clearing the scheduler for a new event
+     * @param event the event that will be reported as complete
+     */
     public synchronized void notifyCompletion(FireEvent event){
         System.out.println("Event Handled: " + event);
         current = null;

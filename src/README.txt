@@ -1,0 +1,42 @@
+SYSC3303 Project for Team 3
+
+*******************************
+Iteration 1
+
+Files:
+
+    1. DroneSubsystem.java
+        - Name of file is class that models the drone subsystem that checks the scheduler for tasks
+        - Simulates performance of tasks (Flying to a zone)
+        - If an event is stored in the scheduler, it will perform the tasks for it
+        - Reports task completion
+        - Otherwise, the thread sleeps and checks again after 500 ms
+
+    2. FireIncidentSubsystem.java
+        - Name of file is class that models the subsystem to monitor fire incidents
+        - Reads information from event csv file and records it as a FireEvent object
+        - Adds FireEvent to scheduler for Drone subsystem to check
+
+    3. Scheduler.java
+        - Name of file is a class that models a scheduler for drones to deal with fire events
+        - Holds information from the FireIncidentSubsystem to pass-through to DroneSubsystem
+        - Reports when events are complete, signals that it is ready to schedule another
+
+    4. FireEvent.java
+        - Name represents the class, which is an object used to store information from the event csv
+        - Holds Time of event, ZoneID, Type of event, and Severity of the event
+        - Created by FireIncidentSubsystem to send to the scheduler
+
+
+Instructions:
+
+  - Make sure all the files are in the same folder. In IntelliJ, this means the class files are located in the
+  src folder.
+
+  - Replace the assignment to the field eventFilePath in FireIncidentSubsystem.java to the filepath of the
+  csv file you wish to simulate.
+
+  - Scheduler contains the main method required to run the simulation. Run this and view the console log
+
+  - If performing correctly, the console log will show each thread acting and printing a description of the
+  current tasks as it runs.

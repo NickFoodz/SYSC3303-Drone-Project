@@ -8,17 +8,16 @@ import java.io.*;
 
 public class FireIncidentSubsystem implements Runnable {
     private final Scheduler scheduler; //Scheduler
-    private final String eventFilePath; //File path to the .csv
+    private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
     boolean EOF = false;
 
     /**
      * Constructor
      * @param scheduler the scheduler
-     * @param eventFilePath the path to the .csv
      */
-    public FireIncidentSubsystem(Scheduler scheduler, String eventFilePath){
+    public FireIncidentSubsystem(Scheduler scheduler){
         this.scheduler = scheduler;
-        this.eventFilePath = eventFilePath;
+
     }
 
     /**

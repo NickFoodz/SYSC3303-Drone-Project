@@ -14,7 +14,7 @@ public class DroneSubsystem implements Runnable{
             while(true){
             FireEvent current = scheduler.getEvent();
             if(current != null){
-                System.out.println("Drone assigned to event: " + current);
+                System.out.println(name + " assigned to event: " + current);
                 Thread.sleep(2000);
                 scheduler.notifyCompletion(current);
             }

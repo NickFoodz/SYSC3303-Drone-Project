@@ -58,8 +58,9 @@ public class Scheduler implements Runnable {
 
         Scheduler scheduler = new Scheduler();
         Thread schedulerThread = new Thread(scheduler);
-        Thread drone1 = new Thread(new DroneSubsystem("Drone 1", scheduler));
         Thread fis = new Thread( new FireIncidentSubsystem(scheduler, "Sample_event_file.csv"));
+        Thread drone1 = new Thread(new DroneSubsystem("Drone 1", scheduler));
+
 
         schedulerThread.start();
         drone1.start();

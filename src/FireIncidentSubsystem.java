@@ -41,7 +41,7 @@ public class FireIncidentSubsystem implements Runnable {
                     FireEvent event = new FireEvent(time, zoneID, type, severity);
                     System.out.println("Fire Incident Subsystem Sent: " + event);
                     scheduler.addEvent(event);
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                 }
             }
 

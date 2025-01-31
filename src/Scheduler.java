@@ -1,5 +1,7 @@
 /**
  * Class Scheduler models a scheduler to receive fire events and dispatch drones
+ * @version 1.0
+ * @author Nick Fuda
  */
 
 import java.util.ArrayList;
@@ -37,7 +39,9 @@ public class Scheduler implements Runnable {
             } catch (InterruptedException e) {
             }
         }
-            return current;
+        notifyAll();
+        return current;
+
 
     }
 

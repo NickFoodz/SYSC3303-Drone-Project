@@ -17,23 +17,27 @@ public class DroneSubsystem implements Runnable{
         this.scheduler = scheduler;
     }
 
+
     @Override
     public void run() {
         try{
-            while(true){
+            while(!scheduler.getShutdownDrones()){
                 FireEvent current = scheduler.getEvent();
                 if(current != null){
                     System.out.println(name + " assigned to event: " + current);
                     Thread.sleep(500); // models time to execute activity
                     scheduler.notifyCompletion(current);
+
                 }
                 else{
                     Thread.sleep(500); //Waits to try again
+                    }
                 }
-            }
+
+
         } catch (InterruptedException e) {
-            System.out.println("drone thread interrupted");
             throw new RuntimeException(e);
         }
+        System.out.println("Shutting down Drone Subsystem");
     }
 }

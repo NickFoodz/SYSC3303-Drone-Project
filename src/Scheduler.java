@@ -7,14 +7,31 @@
 import java.util.ArrayList;
 
 public class Scheduler implements Runnable {
-    private FireEvent current = null;
+    private FireEvent current;
+    private boolean shutdownFIS;
+    private boolean shutdownDrones;
 
     /**
-     * Constructor
+     * Constructor for scheduler class
      */
-    public Scheduler(){}
+    public Scheduler(){
+        current = null;
+        shutdownFIS = false;
+        shutdownDrones = false;
+    }
 
-    public FireEvent getCurrentEvent(){return current;}
+    /**
+     * Used by FireIncidentSystem to signal to scheduler that it has completed its data cycle.
+     */
+    public synchronized void setShutdownFIS(){
+        shutdownFIS = true;
+    }
+
+    /**
+     * Allows drone subsystem to check if everything is shutdown
+     * @return
+     */
+    public boolean getShutdownDrones(){return shutdownDrones;}
 
     /**
      * Adds an event to the scheduler
@@ -36,17 +53,26 @@ public class Scheduler implements Runnable {
      * @return the event stored
      */
     public synchronized FireEvent getEvent(){
-        while (current == null) {
+        while (current == null && !shutdownDrones) {
             try {
+                //Drone is waiting for event or shutdown
                 wait();
             } catch (InterruptedException e) {
             }
         }
         notifyAll();
         return current;
+    }
 
+    /**
+     * Allows drone thread to shut down from waiting for getEvent()
+     */
+    public synchronized void shutdown(){
+        shutdownDrones = true;
+        notifyAll();
 
     }
+
 
     /**
      * Notify all processes that an event was handled, clearing the scheduler for a new event
@@ -60,6 +86,16 @@ public class Scheduler implements Runnable {
 
     @Override
     public void run() {
+        while(!shutdownFIS){
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        //prepare to shutdown after last data read from csv
+        shutdown();
+        System.out.println("Shutting down Scheduler");
     }
 
     public static void main(String[] args) {

@@ -9,6 +9,7 @@ class FireIncidentSubsystemTest {
     private DroneSubsystem droneSubsystem;
     private Thread fireIncidentSubsystemTestThread;
     private Thread droneSubSystemTestThread;
+    private Thread schedulerTestThread;
 
     @BeforeEach
     void setUp() {
@@ -21,6 +22,9 @@ class FireIncidentSubsystemTest {
     void testFireIncidentSubsystemReadsAllEvents() throws InterruptedException {
         fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
         droneSubSystemTestThread = new Thread(droneSubsystem);
+        schedulerTestThread = new Thread(scheduler);
+
+        schedulerTestThread.start();
         fireIncidentSubsystemTestThread.start();
         droneSubSystemTestThread.start();
 
@@ -29,10 +33,12 @@ class FireIncidentSubsystemTest {
         assertTrue(fireIncidentSubsystem.EOF);
 
         // Stop the thread
-        fireIncidentSubsystemTestThread.interrupt();
         droneSubSystemTestThread.interrupt();
+        fireIncidentSubsystemTestThread.interrupt();
+        schedulerTestThread.interrupt();
         fireIncidentSubsystemTestThread.join();
         droneSubSystemTestThread.join();
+        schedulerTestThread.join();
 
     }
 }

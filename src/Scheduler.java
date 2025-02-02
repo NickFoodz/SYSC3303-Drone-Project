@@ -60,9 +60,6 @@ public class Scheduler implements Runnable {
 
     @Override
     public void run() {
-        while(true){
-
-        }
     }
 
     public static void main(String[] args) {

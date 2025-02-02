@@ -17,7 +17,6 @@ public class DroneSubsystem implements Runnable{
         this.scheduler = scheduler;
     }
 
-
     @Override
     public void run() {
         try{
@@ -33,8 +32,8 @@ public class DroneSubsystem implements Runnable{
                 }
             }
         } catch (InterruptedException e) {
+            System.out.println("drone thread interrupted");
             throw new RuntimeException(e);
         }
-
     }
 }

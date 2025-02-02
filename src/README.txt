@@ -1,5 +1,4 @@
 SYSC3303 Project for Team 3
-
 *******************************
 Iteration 1
 
@@ -26,6 +25,18 @@ Files:
         - Name represents the class, which is an object used to store information from the event csv
         - Holds Time of event, ZoneID, Type of event, and Severity of the event
         - Created by FireIncidentSubsystem to send to the scheduler
+
+    5. DroneSubsystemTest.java
+            - Test class for DroneSubsystem
+            - Run to test the fightFire() method in DroneSubsystem
+
+    6. FireIncidentSubsystemTest.java
+            - Test class for FireIncidentSubsystem
+            - Run to test the getData() method in FireIncidentSubsystem
+
+    7. SchedulerTest.java
+            - Test class for Scheduler
+            - Run to test that the Scheduler stores data correctly from FireIncidentSubsystem
 
 
 Instructions:

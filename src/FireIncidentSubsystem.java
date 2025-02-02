@@ -9,7 +9,8 @@ import java.io.*;
 public class FireIncidentSubsystem implements Runnable {
     private final Scheduler scheduler; //Scheduler
     private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
-    boolean EOF = false;
+    boolean EOF; //end of file reached
+
 
     /**
      * Constructor
@@ -17,13 +18,13 @@ public class FireIncidentSubsystem implements Runnable {
      */
     public FireIncidentSubsystem(Scheduler scheduler){
         this.scheduler = scheduler;
-
+        EOF = false;
     }
 
     /**
      * Reads the data from a csv and puts it into the scheduler
      */
-    public synchronized void getData() {
+    public void getData() {
         //Try to read the csv
         try (BufferedReader reader = new BufferedReader(new FileReader(eventFilePath))) {
             String line;
@@ -48,6 +49,7 @@ public class FireIncidentSubsystem implements Runnable {
             throw new RuntimeException(ex);
         }
         EOF = true;
+        scheduler.setShutdownFIS();
     }
 
         /**
@@ -56,5 +58,7 @@ public class FireIncidentSubsystem implements Runnable {
     @Override
     public void run() {
             getData();
+            System.out.println("Shutting down FIS");
+
     }
 }

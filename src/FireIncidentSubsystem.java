@@ -43,18 +43,16 @@ public class FireIncidentSubsystem implements Runnable {
                     Thread.sleep(1000);
                 }
             }
-
         } catch (IOException | InterruptedException ex) {
             throw new RuntimeException(ex);
         }
+        System.out.println("End of File Reached");
         EOF = true;
     }
 
-        /**
+    /**
      * Overrides the run function in Runnable
      */
     @Override
-    public void run() {
-            getData();
-    }
+    public void run() { getData(); }
 }

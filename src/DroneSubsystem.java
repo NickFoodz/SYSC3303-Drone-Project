@@ -22,15 +22,15 @@ public class DroneSubsystem implements Runnable{
     public void run() {
         try{
             while(true){
-            FireEvent current = scheduler.getEvent();
-            if(current != null){
-                System.out.println(name + " assigned to event: " + current);
-                Thread.sleep(500); // models time to execute activity
-                scheduler.notifyCompletion(current);
-            }
-            else{
-                Thread.sleep(500); //Waits to try again
-            }
+                FireEvent current = scheduler.getEvent();
+                if(current != null){
+                    System.out.println(name + " assigned to event: " + current);
+                    Thread.sleep(500); // models time to execute activity
+                    scheduler.notifyCompletion(current);
+                }
+                else{
+                    Thread.sleep(500); //Waits to try again
+                }
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

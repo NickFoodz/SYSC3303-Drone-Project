@@ -19,7 +19,7 @@ class FireIncidentSubsystemTest {
     }
 
     @Test
-    void testFireIncidentSubsystemReadsAllEvents() throws InterruptedException {
+    void testGetData() throws InterruptedException {
         fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
         droneSubSystemTestThread = new Thread(droneSubsystem);
         schedulerTestThread = new Thread(scheduler);

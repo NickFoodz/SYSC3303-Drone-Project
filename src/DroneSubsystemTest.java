@@ -5,29 +5,39 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DroneSubsystemTest {
     private Scheduler scheduler;
-    private FireEvent fireEvent;
+    private FireIncidentSubsystem fireIncidentSubsystem;
     private DroneSubsystem droneSubsystem;
-    private Thread droneThread;
+    private Thread fireIncidentSubsystemTestThread;
+    private Thread droneSubSystemTestThread;
+    private Thread schedulerTestThread;
 
     @BeforeEach
     void setUp() {
         scheduler = new Scheduler();
-        fireEvent = new FireEvent("14:03:15",3,"FIRE_DETECTED","High");
-        droneSubsystem = new DroneSubsystem("Drone1", scheduler);
+        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler);
+        droneSubsystem = new DroneSubsystem("drone1", scheduler);
     }
 
     @Test
-    void testDroneSubsystemHandlesEvent() throws InterruptedException {
-        scheduler.addEvent(fireEvent);
+    void testFightFire() throws InterruptedException {
+        fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
+        droneSubSystemTestThread = new Thread(droneSubsystem);
+        schedulerTestThread = new Thread(scheduler);
 
-        droneThread = new Thread(droneSubsystem);
-        droneThread.start();
+        schedulerTestThread.start();
+        fireIncidentSubsystemTestThread.start();
+        droneSubSystemTestThread.start();
 
-        Thread.sleep(600); // Allow time for the thread to execute
+        Thread.sleep(6000);
 
         assertNull(scheduler.getEvent()); // Ensure event is handled
 
-        droneThread.interrupt(); // Manually interrupt the thread
-        droneThread.join(); // Ensure it stops before test ends
+        // Stop the thread
+        droneSubSystemTestThread.interrupt();
+        fireIncidentSubsystemTestThread.interrupt();
+        schedulerTestThread.interrupt();
+        fireIncidentSubsystemTestThread.join();
+        droneSubSystemTestThread.join();
+        schedulerTestThread.join();
     }
 }

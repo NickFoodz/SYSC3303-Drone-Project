@@ -5,40 +5,31 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SchedulerTest {
     private Scheduler scheduler;
-    private FireIncidentSubsystem fireIncidentSubsystem;
-    private DroneSubsystem droneSubsystem;
-    private Thread fireIncidentSubsystemTestThread;
-    private Thread droneSubSystemTestThread;
+    private FireEvent fireEvent;
     private Thread schedulerTestThread;
 
     @BeforeEach
     void setUp() {
         scheduler = new Scheduler();
-        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler);
-        droneSubsystem = new DroneSubsystem("drone1", scheduler);
+        fireEvent = new FireEvent("14:03:15",3,"FIRE_DETECTED","High");
     }
 
     @Test
-    void testFireIncidentSubsystemReadsAllEvents() throws InterruptedException {
-        fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
-        droneSubSystemTestThread = new Thread(droneSubsystem);
+    void testScheduler() throws InterruptedException {
         schedulerTestThread = new Thread(scheduler);
 
         schedulerTestThread.start();
-        fireIncidentSubsystemTestThread.start();
-        droneSubSystemTestThread.start();
 
-        Thread.sleep(6000);
+        scheduler.addEvent(fireEvent);
 
-        assertTrue(fireIncidentSubsystem.EOF);
+        assertNotNull(scheduler.getEvent());
+
+        scheduler.notifyCompletion(fireEvent);
 
         // Stop the thread
-        droneSubSystemTestThread.interrupt();
-        fireIncidentSubsystemTestThread.interrupt();
+        scheduler.setShutdownFIS();
         schedulerTestThread.interrupt();
-        fireIncidentSubsystemTestThread.join();
-        droneSubSystemTestThread.join();
-        schedulerTestThread.join();
 
+        schedulerTestThread.join();
     }
 }

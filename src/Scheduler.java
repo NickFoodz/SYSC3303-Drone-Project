@@ -44,6 +44,7 @@ public class Scheduler implements Runnable {
             } catch (InterruptedException e) {
             }
         }
+        System.out.println("Event added: " + event);
         current = event;
         notifyAll();
     }
@@ -86,11 +87,12 @@ public class Scheduler implements Runnable {
 
     @Override
     public void run() {
-        while(!shutdownFIS){
+        while(!shutdownFIS && !Thread.currentThread().isInterrupted()){
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt();
+                break;
             }
         }
         //prepare to shutdown after last data read from csv

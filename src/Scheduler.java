@@ -80,7 +80,7 @@ public class Scheduler implements Runnable {
      * @param event the event that will be reported as complete
      */
     public synchronized void notifyCompletion(FireEvent event){
-        System.out.println("Event Handled: " + event);
+        System.out.println("Event resolved: " + event);
         current = null;
         notifyAll();
     }

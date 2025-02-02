@@ -18,12 +18,32 @@ public class DroneSubsystem implements Runnable {
         this.scheduler = scheduler;
     }
 
+    public int putOutFire(FireEvent event){
+        String sev = event.getSeverity();
+        int waterToUse = 0;
+        switch(sev){
+            case("High"):
+                waterToUse = 30;
+                break;
+            case("Moderate"):
+                waterToUse = 20;
+                break;
+            case("Low"):
+                waterToUse = 10;
+                break;
+        }
+        return waterToUse;
+    }
+
     public void fightFire() {
         FireEvent current = scheduler.getEvent();
         try {
             if (current != null) {
-                System.out.println(name + " assigned to event: " + current);
+                int water = putOutFire(current);
+                System.out.println(name + " assigned to event at Zone " + current.getZoneID() + ". En route to location");
+                System.out.println(name + " arrived at Zone " + current.getZoneID() + ", resolving event " + current.getType());
                 Thread.sleep(500); // models time to execute activity
+                System.out.println("Using " + water + "L of water to put out fire");
                 scheduler.notifyCompletion(current);
             } else {
                 Thread.sleep(500); //Waits to try again

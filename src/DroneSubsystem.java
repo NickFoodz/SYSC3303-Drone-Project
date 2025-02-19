@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * Class Drone Subsystem models a drone consulting the scheduler to check for events
  * @version 1.0
@@ -6,6 +8,7 @@
 public class DroneSubsystem implements Runnable {
     private String name;
     private final Scheduler scheduler;
+    private final ArrayList<Drone> droneList;
     private enum droneState{
         IDLE, //Drone is not performing any actions
         ENROUTE,
@@ -23,6 +26,20 @@ public class DroneSubsystem implements Runnable {
         this.name = name;
         this.scheduler = scheduler;
         droneState state = droneState.IDLE; //Starting state is idle
+        droneList = new ArrayList<>();
+        initializeDrones();
+    }
+
+    /**
+     * Initializes subsystem to have 3 drones
+     */
+    public void initializeDrones(){
+        Drone drone1 = new Drone("Drone 1");
+        Drone drone2 = new Drone("Drone 2");
+        Drone drone3 = new Drone("Drone 3");
+        droneList.add(drone1);
+        droneList.add(drone2);
+        droneList.add(drone3);
     }
 
     public int putOutFire(FireEvent event){
@@ -71,16 +88,27 @@ public class DroneSubsystem implements Runnable {
         System.out.println("Shutting down Drone Subsystem");
     }
 
+
+    /**
+     * Helper Class Drone represents the drones that exist in the Drone Subsystem
+     */
     private class Drone{
         private String DroneID;
         private droneState state;
+        private int x, y;
 
         public Drone(String ID){
             DroneID = ID;
             state = droneState.IDLE;
         }
 
+        public String getDroneID() {
+            return DroneID;
+        }
 
+        public droneState getState(){
+            return state;
+        }
     }
 }
 

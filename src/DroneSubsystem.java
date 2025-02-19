@@ -6,6 +6,12 @@
 public class DroneSubsystem implements Runnable {
     private String name;
     private final Scheduler scheduler;
+    private enum droneState{
+        IDLE, //Drone is not performing any actions
+        ENROUTE,
+        DEPLOYINGAGENT,
+        RETURNING;
+    }
 
     /**
      * Constructor for the Drone Subsystem
@@ -16,6 +22,7 @@ public class DroneSubsystem implements Runnable {
     public DroneSubsystem(String name, Scheduler scheduler) {
         this.name = name;
         this.scheduler = scheduler;
+        droneState state = droneState.IDLE; //Starting state is idle
     }
 
     public int putOutFire(FireEvent event){
@@ -63,6 +70,19 @@ public class DroneSubsystem implements Runnable {
         }
         System.out.println("Shutting down Drone Subsystem");
     }
+
+    private class Drone{
+        private String DroneID;
+        private droneState state;
+
+        public Drone(String ID){
+            DroneID = ID;
+            state = droneState.IDLE;
+        }
+
+
+    }
 }
+
 
 

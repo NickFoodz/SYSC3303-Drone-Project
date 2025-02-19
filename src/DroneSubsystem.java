@@ -18,7 +18,6 @@ public class DroneSubsystem implements Runnable {
 
     /**
      * Constructor for the Drone Subsystem
-     *
      * @param name      name of the drone
      * @param scheduler scheduler
      */
@@ -32,14 +31,15 @@ public class DroneSubsystem implements Runnable {
 
     /**
      * Initializes subsystem to have 3 drones
+     * assume only 1 for iteration 2
      */
     public void initializeDrones(){
         Drone drone1 = new Drone("Drone 1");
-        Drone drone2 = new Drone("Drone 2");
-        Drone drone3 = new Drone("Drone 3");
+        //Drone drone2 = new Drone("Drone 2");
+        //Drone drone3 = new Drone("Drone 3");
         droneList.add(drone1);
-        droneList.add(drone2);
-        droneList.add(drone3);
+        //droneList.add(drone2);
+        //droneList.add(drone3);
     }
 
     public int putOutFire(FireEvent event){

@@ -11,9 +11,9 @@ public class DroneSubsystem implements Runnable {
     private final ArrayList<Drone> droneList;
     private enum droneState{
         IDLE, //Drone is not performing any actions
-        ENROUTE,
-        DEPLOYINGAGENT,
-        RETURNING;
+        ENROUTE, //Drone is approaching an incident
+        DEPLOYINGAGENT, //Drone is deploying firefighting agent
+        RETURNING; //Drone is returning to base
     }
 
     /**
@@ -95,20 +95,40 @@ public class DroneSubsystem implements Runnable {
     private class Drone{
         private String DroneID;
         private droneState state;
-        private int x, y;
+        private int x, y; //coordinates of the drone's location
 
+        /**
+         * Constructor for drones
+         * @param ID the name of the drone
+         */
         public Drone(String ID){
             DroneID = ID;
             state = droneState.IDLE;
         }
 
-        public String getDroneID() {
-            return DroneID;
-        }
+        /**
+         * Get the name of the drone
+         * @return String ID of the drone
+         */
+        public String getDroneID() {return DroneID;}
 
-        public droneState getState(){
-            return state;
-        }
+        /**
+         * Get the state of the Drone
+         * @return droneState state of drone
+         */
+        public droneState getState(){return state;}
+
+        /**
+         * Get x coordinate of the drone
+         * @return x coordinate of the drone
+         */
+        public int getDroneXLocation(){return x;}
+
+        /**
+         * Get the y coordinate of the drone
+         * @return y coordinate of the drone
+         */
+        public int getDroneYLocation(){return y;}
     }
 }
 

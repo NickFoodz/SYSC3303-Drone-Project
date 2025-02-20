@@ -4,17 +4,20 @@
  * @author Nick Fuda
  */
 
-import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Scheduler implements Runnable {
     private FireEvent current;
     private boolean shutdownFIS;
     private boolean shutdownDrones;
+    private ConcurrentLinkedQueue<FireEvent> eventList;
+
 
     /**
      * Constructor for scheduler class
      */
     public Scheduler(){
+        eventList = new ConcurrentLinkedQueue<>();
         current = null;
         shutdownFIS = false;
         shutdownDrones = false;
@@ -45,7 +48,8 @@ public class Scheduler implements Runnable {
             }
         }
         System.out.println("Event added: " + event);
-        current = event;
+        eventList.add(event);
+        current = eventList.peek();
         notifyAll();
     }
 
@@ -81,7 +85,9 @@ public class Scheduler implements Runnable {
      */
     public synchronized void notifyCompletion(FireEvent event){
         System.out.println("Event resolved: " + event);
-        current = null;
+        eventList.remove();
+        current = eventList.peek();
+
         notifyAll();
     }
 

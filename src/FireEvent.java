@@ -30,6 +30,26 @@ public class FireEvent {
     public String getSeverity() {return severity;}
 
     /**
+     * Getter for the severity number
+     * High -> 3
+     * Moderate -> 2
+     * Low -> 1
+     *
+     * @return the severity number
+     */
+    public int getSeverityLevel() {
+        int sev = 1;
+        if(severity.equals("High")){
+            sev = 3;
+        } else if (severity.equals("Moderate")) {
+            sev = 2;
+        } else if (severity.equals("Low")) {
+            sev = 1;
+        }
+        return sev;
+    }
+
+    /**
      * Getter for the time
      * @return time as a string
      */

@@ -6,6 +6,8 @@
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class FireIncidentSubsystem implements Runnable {
     private final Scheduler scheduler; //Scheduler
@@ -30,7 +32,8 @@ public class FireIncidentSubsystem implements Runnable {
         try (BufferedReader reader = new BufferedReader(new FileReader(eventFilePath))) {
             String line;
             reader.readLine(); //First line is header
-            ArrayList<FireEvent> eventsToBeSorted = new ArrayList<>();
+            List<FireEvent> eventsToBeSorted = new ArrayList<>();
+            List<FireEvent> highSeverityEvents = new ArrayList<>();
 
             //While there is data on the lines, create a new fire event and add it to the scheduler
             while ((line = reader.readLine()) != null) {
@@ -42,17 +45,22 @@ public class FireIncidentSubsystem implements Runnable {
                     String severity = info[3];
                     FireEvent event = new FireEvent(time, zoneID, type, severity);
                     System.out.println("Fire Incident Subsystem Sent: " + event);
-                    eventsToBeSorted.add(event);
 
+                    if(event.getSeverity().equals("High")){
+                        highSeverityEvents.add(event);
+                    } else {
+                        eventsToBeSorted.add(event);
+                    }
                 }
             }
 
-            //sort
-//            sortEvents(eventsToBeSorted);
+            List<FireEvent> allEvents = new ArrayList<>();
+            allEvents.addAll(highSeverityEvents);
+            allEvents.addAll(eventsToBeSorted);
 
-            for(int i = 0; i < eventsToBeSorted.size(); i++){
-                scheduler.addEvent(eventsToBeSorted.get(i));
-                Thread.sleep(1000);
+            for(int i = 0; i < allEvents.size(); i++){
+                scheduler.addEvent(allEvents.get(i));
+                Thread.sleep(500);
             }
 
         } catch (IOException | InterruptedException ex) {
@@ -62,26 +70,6 @@ public class FireIncidentSubsystem implements Runnable {
         scheduler.setShutdownFIS();
     }
 
-    /**
-     * Sorts all the events by severity level
-     * @param events the unsorted event list
-     */
-    private void sortEvents(ArrayList<FireEvent> events){
-        //sort the events
-        for (int i = 0; i < events.size() - 1; i++) {
-            int compId = i;
-            for (int j = i + 1; j < events.size(); j++) {
-                if (events.get(j).getSeverityLevel() > events.get(compId).getSeverityLevel()) {
-                    compId = j;
-                }
-            }
-
-            //event swap
-            FireEvent temp = events.get(i);
-            events.set(i, events.get(compId));
-            events.set(compId, temp);
-        }
-    }
 
         /**
      * Overrides the run function in Runnable

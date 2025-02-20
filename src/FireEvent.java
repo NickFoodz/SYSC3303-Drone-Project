@@ -1,10 +1,13 @@
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * Class FireEvent is a structure class to hold the data of an event
  * @version 1.0
  * @author Nick Fuda
  */
 public class FireEvent {
-    private String time;
+    private LocalTime time;
     private int zoneID;
     private String type;
     private String severity;
@@ -17,7 +20,7 @@ public class FireEvent {
      * @param severity the severity as a string
      */
     public FireEvent(String time, int zoneID, String type, String severity){
-        this.time = time;
+        this.time = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm:ss"));;
         this.zoneID = zoneID;
         this.type = type;
         this.severity=severity;
@@ -53,7 +56,7 @@ public class FireEvent {
      * Getter for the time
      * @return time as a string
      */
-    public String getTime(){return time;}
+    public LocalTime getTime(){return time;}
 
     /**
      * Getter for the zone ID
@@ -69,6 +72,7 @@ public class FireEvent {
 
     @Override
     public String toString() {
-        return "[Time: " + time +", Zone: " + zoneID + ", Type: " + type + ", Severity: " + severity + "]";
+        DateTimeFormatter alwaysShowSeconds = DateTimeFormatter.ofPattern("HH:mm:ss");
+        return "[Time: " + time.format(alwaysShowSeconds) +", Zone: " + zoneID + ", Type: " + type + ", Severity: " + severity + "]";
     }
 }

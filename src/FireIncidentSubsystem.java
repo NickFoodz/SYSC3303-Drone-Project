@@ -43,16 +43,16 @@ public class FireIncidentSubsystem implements Runnable {
                     FireEvent event = new FireEvent(time, zoneID, type, severity);
                     System.out.println("Fire Incident Subsystem Sent: " + event);
                     eventsToBeSorted.add(event);
-                    Thread.sleep(1000);
 
                 }
             }
 
             //sort
-            sortEvents(eventsToBeSorted);
+//            sortEvents(eventsToBeSorted);
 
             for(int i = 0; i < eventsToBeSorted.size(); i++){
                 scheduler.addEvent(eventsToBeSorted.get(i));
+                Thread.sleep(1000);
             }
 
         } catch (IOException | InterruptedException ex) {

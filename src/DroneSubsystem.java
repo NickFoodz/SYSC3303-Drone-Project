@@ -106,6 +106,45 @@ public class DroneSubsystem implements Runnable {
             state = droneState.IDLE;
         }
 
+        public void move() {
+            switch(state) {
+                case droneState.IDLE:
+                    System.out.println("Drone is now moving");
+                    setState(droneState.ENROUTE);
+                default:
+                    System.out.println("Drone is in the middle of an action");
+            }
+        }
+
+
+        public void spray() {
+            switch(state) {
+                case droneState.ENROUTE:
+                    System.out.println("Drone is dropping firefighting agent");
+                case droneState.DEPLOYINGAGENT:
+                    System.out.println("Drone is already dropping firefighting agent");
+            }
+        }
+
+        public void returnToBase() {
+            switch(state) {
+                case droneState.RETURNING:
+                    System.out.println("Drone is already returning");
+                default:
+                    System.out.println("Drone is now returning to base");
+                    setState(droneState.RETURNING);
+            }
+        }
+
+
+        /**
+         * Set state of the drone
+         * @param s the new state of the drone
+         */
+        public void setState(droneState s) {
+            state = s;
+        }
+
         /**
          * Get the name of the drone
          * @return String ID of the drone

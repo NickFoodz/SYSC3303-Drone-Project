@@ -1,0 +1,34 @@
+Contributions:
+
+Iteration 1:
+Thomas Imbert
+- Sequence Diagrams
+
+Elton Kong
+- Class UML Diagram
+
+Nick Fuda
+- DroneSubsystem.java, FireIncidentSubsystem.java, Scheduler.java, debugging, one drone test
+
+Hanyoung Chung (John)
+- Code review, debugging, test classes
+
+
+
+Iteration 2:
+Thomas Imbert
+- Scheduler scheduling code
+
+Elton Kong
+- ____ diagram and code for drone subsystem
+- Code Review and documentation review
+
+Nick Fuda
+- DroneSubsystem state machine, code debugging and drone helper class
+- Design of state machine and helping with scheduler algorithm
+
+Hanyoung Chung (John)
+- Code review, debugging, test classes
+
+Bryson Kushner:
+__ and __ diagrams

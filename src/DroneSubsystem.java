@@ -33,11 +33,11 @@ public class DroneSubsystem implements Runnable {
      */
     public void initializeDrones(){
         Drone drone1 = new Drone("Drone 1");
-        //Drone drone2 = new Drone("Drone 2");
-        //Drone drone3 = new Drone("Drone 3");
+        Drone drone2 = new Drone("Drone 2");
+        Drone drone3 = new Drone("Drone 3");
         droneList.add(drone1);
-        //droneList.add(drone2);
-        //droneList.add(drone3);
+        droneList.add(drone2);
+        droneList.add(drone3);
     }
 
 

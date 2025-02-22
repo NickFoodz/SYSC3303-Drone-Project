@@ -96,7 +96,7 @@ public class FireIncidentSubsystem implements Runnable {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    //**FOR JUNIT TESTS**
+                    //*FOR JUNIT TESTS*
                     System.out.println("FireIncidentSubsystem thread interrupted, shutting down.");
                     Thread.currentThread().interrupt(); // Restore interrupt status
                     break;

@@ -6,10 +6,10 @@ import java.time.LocalTime;
  * @author Thomas Imbert
  */
 public class Simulation implements Runnable {
-    private int simulationSpeed;                        // Simulation Speed in ms/s (I have it set to 1 in a lot of places for testing)
-    private int time = 46200;                           // Global what time it is in the sim (starting at like 12:50, will have to revise, maybe make it a localtime object)
-    private boolean running;                            // If the simulation is running or not
-    private FireIncidentSubsystem incidentSubsystem;    //FIS
+    private int simulationSpeed;                            // Simulation Speed in ms/s (I have it set to 1 in a lot of places for testing)
+    private int time = 46200;                               // Global what time it is in the sim (starting at like 12:50, will have to revise, maybe make it a localtime object)
+    private boolean running;                                // If the simulation is running or not
+    private FireIncidentSubsystem incidentSubsystem;        //FIS
 
     public Simulation(int simSpeed) {
         this.simulationSpeed = simSpeed;

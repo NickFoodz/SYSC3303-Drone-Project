@@ -28,10 +28,12 @@ class DroneSubsystemTest {
 
     @Test
     void testFightFire() throws InterruptedException {
+        simulationTestThread = new Thread(simulation);
         fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
         droneSubSystemTestThread = new Thread(droneSubsystem);
         schedulerTestThread = new Thread(scheduler);
 
+        simulationTestThread.start();
         schedulerTestThread.start();
         fireIncidentSubsystemTestThread.start();
         droneSubSystemTestThread.start();
@@ -45,8 +47,10 @@ class DroneSubsystemTest {
         droneSubSystemTestThread.interrupt();
         fireIncidentSubsystemTestThread.interrupt();
         schedulerTestThread.interrupt();
+        simulationTestThread.interrupt();
         fireIncidentSubsystemTestThread.join();
         droneSubSystemTestThread.join();
         schedulerTestThread.join();
+        simulationTestThread.join();
     }
 }

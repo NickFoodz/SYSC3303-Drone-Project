@@ -39,6 +39,37 @@ Files:
             - Run to test that the Scheduler stores data correctly from FireIncidentSubsystem
 
 
+Iteration 2:
+    1. DroneSubsystem.java
+            - Implemented state machine and helper class for drones to support subsystem
+            - List stores drones if available
+            - Moved some methods to drone helper class and added new methods to deal with list
+
+    2. FireIncidentSubsystem.java
+        - No changes from iteration 1
+
+    3. Scheduler.java
+        - Implemented stack implementation for high severity (push to top and pop) and FIFO for other severity
+
+    4. FireEvent.java
+        - No changes from iteration 1
+
+    5. DroneSubsystemTest.java
+            - Test class for DroneSubsystem
+            - Added tests for new drone helper class and changed methods in DroneSubsystem.java
+
+    6. FireIncidentSubsystemTest.java
+            - No changes from iteration 1
+
+    7. SchedulerTest.java
+            - Test class for Scheduler
+            - Run to test that the Scheduler stores data correctly from FireIncidentSubsystem
+
+
+
+
+
+
 Instructions:
 
   - Make sure all the files are in the same folder. In IntelliJ, this means the class files are located in the

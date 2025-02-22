@@ -5,24 +5,35 @@
  */
 
 import java.io.*;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class FireIncidentSubsystem implements Runnable {
     private final Scheduler scheduler; //Scheduler
+    private final Simulation simulation; //Simulation **NEEDED**
     private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
+    List<FireEvent> allEvents;
 
 
     /**
      * Constructor
+     *
      * @param scheduler the scheduler
      */
-    public FireIncidentSubsystem(Scheduler scheduler){
+    public FireIncidentSubsystem(Scheduler scheduler, Simulation simulation) {
         this.scheduler = scheduler;
+        this.simulation = simulation;
         EOF = false;
+        allEvents = new ArrayList<>();
+
+        simulation.setFireIncidentSubsystem(this);
     }
 
     /**
-     * Reads the data from a csv and puts it into the scheduler
+     * Reads the data from a csv and puts it into a master AllEvents List
      */
     public void getData() {
         //Try to read the csv
@@ -40,25 +51,59 @@ public class FireIncidentSubsystem implements Runnable {
                     String severity = info[3];
                     FireEvent event = new FireEvent(time, zoneID, type, severity);
                     System.out.println("Fire Incident Subsystem Sent: " + event);
-                    scheduler.addEvent(event);
-                    Thread.sleep(1000);
+
+                    //adds all events to a master AllEvents List
+                    allEvents.add(event);
                 }
             }
 
-        } catch (IOException | InterruptedException ex) {
+            //sorts all events by timestamp so we can send them out to the simulation in order.
+            allEvents.sort(Comparator.comparing(FireEvent::getTime));
+
+
+        } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
         EOF = true;
-        scheduler.setShutdownFIS();
     }
 
-        /**
+    /**
+     * Checks if theres an event to be send out at the current simulation time
+     * Then removes it from the master AllEvents list and sends it out to the scheduler.
+     **/
+    public synchronized void consumeEvent(LocalTime currentSimTime) {
+        while (!allEvents.isEmpty() && allEvents.get(0).getTime().equals(currentSimTime)) {
+            FireEvent event = allEvents.remove(0);
+            //SENDING EVENT TO SCHEDULER:
+            scheduler.addEvent(event);
+        }
+
+        if(allEvents.isEmpty()){
+            notifyAll();
+        }
+    }
+
+    /**
      * Overrides the run function in Runnable
+     * Reads in FireEvents from file. Then wait for simulation to trigger events. Shutdown after all events are consumed
      */
     @Override
     public void run() {
-            getData();
-            System.out.println("Shutting down FIS");
+        getData();
 
+        synchronized (this) {
+            while (!allEvents.isEmpty()) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    //*FOR JUNIT TESTS*
+                    System.out.println("FireIncidentSubsystem thread interrupted, shutting down.");
+                    Thread.currentThread().interrupt(); // Restore interrupt status
+                    break;
+                }
+            }
+        }
+        scheduler.setShutdownFIS();
+        System.out.println("Fire Incident Subsystem Shutting Down");
     }
 }

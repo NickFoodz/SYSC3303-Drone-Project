@@ -7,16 +7,18 @@ class DroneSubsystemTest {
     private Scheduler scheduler;
     private FireIncidentSubsystem fireIncidentSubsystem;
     private DroneSubsystem droneSubsystem;
-    private FireEvent fireEvent;
+    private Simulation simulation;
+    private Thread simulationTestThread;
     private Thread fireIncidentSubsystemTestThread;
     private Thread droneSubSystemTestThread;
     private Thread schedulerTestThread;
 
     @BeforeEach
     void setUp() {
-        scheduler = new Scheduler();
+        simulation = new Simulation(1);
+        scheduler = new Scheduler(simulation);
         droneSubsystem = new DroneSubsystem("testDroneSubsystem", scheduler);
-        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler);
+        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler, simulation);
     }
 
     @Test

@@ -64,6 +64,10 @@ public class DroneSubsystem implements Runnable {
         }
     }
 
+    public ArrayList<DroneSubsystem.Drone> getDroneList() {
+        return droneList;
+    }
+
     /**
      * For use by drones when they complete their event handling
      * @param drone

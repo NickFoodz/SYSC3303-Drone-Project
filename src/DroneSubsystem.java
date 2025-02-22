@@ -33,11 +33,12 @@ public class DroneSubsystem implements Runnable {
      */
     public void initializeDrones(){
         Drone drone1 = new Drone("Drone 1");
-        Drone drone2 = new Drone("Drone 2");
-        Drone drone3 = new Drone("Drone 3");
+        //Drone drone2 = new Drone("Drone 2");
+        //Drone drone3 = new Drone("Drone 3");
         droneList.add(drone1);
-        droneList.add(drone2);
-        droneList.add(drone3);
+        //droneList.add(drone2);
+        //droneList.add(drone3);
+        //Commented out drones are for when more drones are necessary
     }
 
 
@@ -50,6 +51,7 @@ public class DroneSubsystem implements Runnable {
         droneList.remove(index);
         index ++;
         //change to 2 if 3 drones
+        //Index is meant to cycle which drones get assigned which tasks
         if(index % 1 == 0){
             index = 0;
         }
@@ -60,6 +62,7 @@ public class DroneSubsystem implements Runnable {
      * @param drone
      */
     public void returnDroneToList(Drone drone){
+        //When a drone returns it adds itself back to the list
         droneList.add(drone);
     }
 
@@ -78,6 +81,7 @@ public class DroneSubsystem implements Runnable {
                 throw new RuntimeException(e);
             }
         }
+        //Otherwise, assign a drone to the event or wait if the scheduler has no task
         try {
             if (current != null) {
                 assignDrone();
@@ -167,7 +171,7 @@ public class DroneSubsystem implements Runnable {
          * @throws InterruptedException
          */
         private void fightFire() throws InterruptedException {
-            enRoute(); //State 2 from idle
+            enRoute(); //State 2 from idle, carries into next states, beginning the state machine
             scheduler.notifyCompletion(currentEvent);
             returnDroneToList(this);
         }
@@ -177,11 +181,11 @@ public class DroneSubsystem implements Runnable {
          * @throws InterruptedException
          */
         private void enRoute() throws InterruptedException {
-            state = droneState.ENROUTE;
+            state = droneState.ENROUTE; //Changes state
             System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
             //travelTime = methodToCalculateTravelTime
             Thread.sleep(500);
-            state = droneState.DEPLOYINGAGENT;
+            //Go to next state
             deployAgent();
         }
 
@@ -190,10 +194,11 @@ public class DroneSubsystem implements Runnable {
          * @throws InterruptedException
          */
         private void deployAgent()throws InterruptedException {
+            state = droneState.DEPLOYINGAGENT; //Change state
             System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() +", deploying agent");
             int waterToUse = putOutFire(currentEvent);
             Thread.sleep(500);
-            state = droneState.RETURNING;
+            //Go to next state
             returnToBase();
         }
 
@@ -201,9 +206,11 @@ public class DroneSubsystem implements Runnable {
          * Method that happens when the drone is in the RETURNING state, returns the drone to the IDLE state
          */
         private void returnToBase() throws InterruptedException {
+            state = droneState.RETURNING;
             System.out.println(DroneID + " returning to base");
             Thread.sleep(500); //change to travel time
             travelTime = 0;
+            //Return to the first state
             state = droneState.IDLE;
         }
 

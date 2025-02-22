@@ -20,7 +20,7 @@ Thomas Imbert
 - Scheduler scheduling code
 
 Elton Kong
-- ____ diagram and code for drone subsystem
+- Sequence diagram and code for drone subsystem
 - Code Review and documentation review
 
 Nick Fuda
@@ -31,4 +31,4 @@ Hanyoung Chung (John)
 - Code review, debugging, test classes
 
 Bryson Kushner:
-__ and __ diagrams
+Class UML and State Machine diagrams

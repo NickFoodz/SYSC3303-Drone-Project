@@ -64,6 +64,10 @@ public class DroneSubsystem implements Runnable {
         }
     }
 
+    public ArrayList<DroneSubsystem.Drone> getDroneList() {
+        return droneList;
+    }
+
     /**
      * For use by drones when they complete their event handling
      * @param drone
@@ -96,7 +100,8 @@ public class DroneSubsystem implements Runnable {
                 Thread.sleep(500); //Waits to try again
             }
         } catch (RuntimeException | InterruptedException e) {
-            throw new RuntimeException(e);
+            System.out.println("DroneSubsystem thread interrupted, shutting down.");
+            Thread.currentThread().interrupt();
         }
     }
 

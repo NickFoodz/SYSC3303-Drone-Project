@@ -17,8 +17,13 @@ class DroneSubsystemTest {
     void setUp() {
         simulation = new Simulation(1);
         scheduler = new Scheduler(simulation);
+        droneSubsystem = new DroneSubsystem("testDroneSubsystem", scheduler);
         fireIncidentSubsystem = new FireIncidentSubsystem(scheduler, simulation);
-        droneSubsystem = new DroneSubsystem("drone1", scheduler);
+    }
+
+    @Test
+    void testInitializeDrones() {
+        assertEquals(1, droneSubsystem.getDroneList().size());
     }
 
     @Test
@@ -35,25 +40,17 @@ class DroneSubsystemTest {
 
         Thread.sleep(6000);
 
-        assertNull(scheduler.getEvent()); // Ensure event is handled
+        assertEquals(1, droneSubsystem.getDroneList().size(), "All drones have returned");
+        assertNull(scheduler.getEvent(), "All events are handled");
 
         // Stop the thread
         droneSubSystemTestThread.interrupt();
         fireIncidentSubsystemTestThread.interrupt();
         schedulerTestThread.interrupt();
+        simulationTestThread.interrupt();
         fireIncidentSubsystemTestThread.join();
         droneSubSystemTestThread.join();
         schedulerTestThread.join();
+        simulationTestThread.join();
     }
-    @Test
-    void testPutOutFire(){
-        DroneSubsystem drone = new DroneSubsystem("Test", scheduler);
-        FireEvent testSevereEvent = new FireEvent("00:00:00",0,"TEST", "High");
-        FireEvent testModerateEvent = new FireEvent("00:00:00",0,"TEST", "Moderate");
-        FireEvent testLowEvent = new FireEvent("00:00:00",0,"TEST", "Low");
-        //assertEquals(drone.putOutFire(testSevereEvent), 30);
-        //assertEquals(drone.putOutFire(testModerateEvent), 20);
-        //assertEquals(drone.putOutFire(testLowEvent), 10);
-    }
-
 }

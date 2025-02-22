@@ -27,7 +27,8 @@ public class Simulation implements Runnable {
             try {
                 Thread.sleep(simulationSpeed);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                System.out.println("simulation thread interrupted, shutting down.");
+                Thread.currentThread().interrupt();
             }
 
             LocalTime currentSimTime = LocalTime.of(getHours(), getMinutes(), getSeconds());

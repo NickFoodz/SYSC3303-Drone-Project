@@ -13,7 +13,7 @@ import java.util.List;
 public class FireIncidentSubsystem implements Runnable {
     private final Scheduler scheduler; //Scheduler
     private final Simulation simulation; //Simulation **NEEDED**
-    private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
+    private final String eventFilePath = "SYSC3303-Drone-Project-master/Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
     List<FireEvent> allEvents;
 

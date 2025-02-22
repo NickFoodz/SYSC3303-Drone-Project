@@ -12,6 +12,13 @@ public class DroneSubsystem implements Runnable {
     FireEvent current;
     private int index;
 
+    private enum droneState{
+        IDLE, //Drone is not performing any actions
+        ENROUTE, //Drone is approaching an incident
+        DEPLOYINGAGENT, //Drone is deploying firefighting agent
+        RETURNING; //Drone is returning to base
+    }
+
 
     /**
      * Constructor for the Drone Subsystem
@@ -21,6 +28,7 @@ public class DroneSubsystem implements Runnable {
     public DroneSubsystem(String name, Scheduler scheduler) {
         this.name = name;
         this.scheduler = scheduler;
+        droneState state = droneState.IDLE; //Starting state is idle
         droneList = new ArrayList<>();
         current = null;
         index = 0;
@@ -38,7 +46,6 @@ public class DroneSubsystem implements Runnable {
         droneList.add(drone1);
         //droneList.add(drone2);
         //droneList.add(drone3);
-        //Commented out drones are for when more drones are necessary
     }
 
 
@@ -93,12 +100,11 @@ public class DroneSubsystem implements Runnable {
         }
     }
 
-
     @Override
     public void run() {
         while (!scheduler.getShutdownDrones()) {
             try {
-                fightFire();
+              fightFire();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

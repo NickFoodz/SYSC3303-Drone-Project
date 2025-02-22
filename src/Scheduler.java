@@ -4,23 +4,26 @@
  * @author Nick Fuda
  */
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Scheduler implements Runnable {
     private FireEvent current;
     private boolean shutdownFIS;
     private boolean shutdownDrones;
-    private ConcurrentLinkedQueue<FireEvent> eventList;
+    private Simulation simulation;
+    private ArrayList<FireEvent> eventList = new ArrayList<>();
 
 
     /**
      * Constructor for scheduler class
      */
-    public Scheduler(){
-        eventList = new ConcurrentLinkedQueue<>();
+    public Scheduler(Simulation simulation){
+        eventList = new ArrayList<>();
         current = null;
         shutdownFIS = false;
         shutdownDrones = false;
+        this.simulation = simulation;
     }
 
     /**
@@ -47,9 +50,15 @@ public class Scheduler implements Runnable {
             } catch (InterruptedException e) {
             }
         }
+
+        //puts HIGH severity FireEvents at the front of the queue, and the rest at the back
         System.out.println("Event added: " + event);
-        eventList.add(event);
-        current = eventList.peek();
+        if(event.getSeverity().equals("High")){
+            eventList.addFirst(event);
+        } else {
+            eventList.addLast(event);
+        }
+        current = eventList.getFirst();
         notifyAll();
     }
 
@@ -58,15 +67,23 @@ public class Scheduler implements Runnable {
      * @return the event stored
      */
     public synchronized FireEvent getEvent(){
-        while (current == null && !shutdownDrones) {
+        while (eventList.isEmpty() && !shutdownDrones) {
             try {
-                //Drone is waiting for event or shutdown
+//                System.out.println("Drone waiting for an event...");
                 wait();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
             }
         }
-        notifyAll();
-        return current;
+
+        if (!eventList.isEmpty()) {
+            FireEvent nextEvent = eventList.removeFirst();
+            System.out.println("Drone received event: " + nextEvent);
+            return nextEvent;
+        }
+
+        return null;
     }
 
     /**
@@ -74,6 +91,7 @@ public class Scheduler implements Runnable {
      */
     public synchronized void shutdown(){
         shutdownDrones = true;
+        simulation.endSimulation();
         notifyAll();
 
     }
@@ -85,8 +103,11 @@ public class Scheduler implements Runnable {
      */
     public synchronized void notifyCompletion(FireEvent event){
         System.out.println("Event resolved: " + event);
-        eventList.remove();
-        current = eventList.peek();
+        if(!eventList.isEmpty()){
+            current = eventList.getFirst();
+        } else {
+            current = null;
+        }
 
         notifyAll();
     }
@@ -95,7 +116,7 @@ public class Scheduler implements Runnable {
     public void run() {
         while(!shutdownFIS && !Thread.currentThread().isInterrupted()){
             try {
-                Thread.sleep(500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -107,15 +128,17 @@ public class Scheduler implements Runnable {
     }
 
     public static void main(String[] args) {
+        Simulation simulation = new Simulation(1);
+        Scheduler scheduler = new Scheduler(simulation);
 
-        Scheduler scheduler = new Scheduler();
+        Thread simulationThread = new Thread(simulation);
         Thread schedulerThread = new Thread(scheduler);
-        Thread fis = new Thread( new FireIncidentSubsystem(scheduler));
+        Thread fis = new Thread( new FireIncidentSubsystem(scheduler, simulation));
         Thread drone1 = new Thread(new DroneSubsystem("Drone 1", scheduler));
 
-
+        simulationThread.start();
+        fis.start();
         schedulerThread.start();
         drone1.start();
-        fis.start();
     }
 }

@@ -16,6 +16,11 @@ public class Simulation implements Runnable {
         running = true;
     }
 
+    /**
+     * Overrides the run function in Runnable
+     * While the simulation is running, check if theres an event that needs to be handled at each current time
+     * Increments the simulation time
+     */
     @Override
     public void run() {
         while (running) {
@@ -35,21 +40,38 @@ public class Simulation implements Runnable {
         }
     }
 
+    /**
+     * Setter to end the simulation
+     */
     public void endSimulation(){
         running = false;
     }
 
+    /**
+     * Setter for the FireIncidentSubsystem
+     */
     public void setFireIncidentSubsystem(FireIncidentSubsystem f){
         incidentSubsystem = f;
     }
 
-    //Functions to create LocalTime object.
+    /**
+     * Getter for the time in hours
+     * Functions to create LocalTime object.
+     */
     private int getHours() {
         return time / 3600;
     }
+    /**
+     * Getter for the time in minutes
+     * Functions to create LocalTime object.
+     */
     private int getMinutes() {
         return (time - (getHours() * 3600)) / 60;
     }
+    /**
+     * Getter for the time in seconds
+     * Functions to create LocalTime object.
+     */
     private int getSeconds() {
         return time - (getHours() * 3600) - (getMinutes() * 60);
     }

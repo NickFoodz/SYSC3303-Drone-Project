@@ -75,7 +75,9 @@ public class DroneSubsystem implements Runnable {
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            //**FOR JUNIT TESTS**
+            System.out.println("DroneSubsystem thread interrupted, shutting down.");
+            Thread.currentThread().interrupt(); // Restore interrupted status
         }
     }
 

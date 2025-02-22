@@ -12,7 +12,6 @@ public class Scheduler implements Runnable {
     private boolean shutdownFIS;
     private boolean shutdownDrones;
     private Simulation simulation;
-//    private ConcurrentLinkedQueue<FireEvent> eventList;
     private ArrayList<FireEvent> eventList = new ArrayList<>();
 
 
@@ -20,7 +19,6 @@ public class Scheduler implements Runnable {
      * Constructor for scheduler class
      */
     public Scheduler(Simulation simulation){
-//        eventList = new ConcurrentLinkedQueue<>();
         eventList = new ArrayList<>();
         current = null;
         shutdownFIS = false;

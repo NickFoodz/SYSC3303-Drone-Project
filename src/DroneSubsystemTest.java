@@ -7,23 +7,28 @@ class DroneSubsystemTest {
     private Scheduler scheduler;
     private FireIncidentSubsystem fireIncidentSubsystem;
     private DroneSubsystem droneSubsystem;
+    private Simulation simulation;
+    private Thread simulationTestThread;
     private Thread fireIncidentSubsystemTestThread;
     private Thread droneSubSystemTestThread;
     private Thread schedulerTestThread;
 
     @BeforeEach
     void setUp() {
-        scheduler = new Scheduler();
-        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler);
+        simulation = new Simulation(1);
+        scheduler = new Scheduler(simulation);
+        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler, simulation);
         droneSubsystem = new DroneSubsystem("drone1", scheduler);
     }
 
     @Test
     void testFightFire() throws InterruptedException {
+        simulationTestThread = new Thread(simulation);
         fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
         droneSubSystemTestThread = new Thread(droneSubsystem);
         schedulerTestThread = new Thread(scheduler);
 
+        simulationTestThread.start();
         schedulerTestThread.start();
         fireIncidentSubsystemTestThread.start();
         droneSubSystemTestThread.start();

@@ -18,6 +18,7 @@ Hanyoung Chung (John)
 Iteration 2:
 Thomas Imbert
 - Scheduler scheduling code
+- Simulation code and integration
 
 Elton Kong
 - Sequence diagram and code for drone subsystem
@@ -25,10 +26,11 @@ Elton Kong
 
 Nick Fuda
 - DroneSubsystem state machine, code debugging and drone helper class
-- Design of state machine and helping with scheduler algorithm
+- Design of state machine and helping with scheduler algorithm and simulation integration
 
 Hanyoung Chung (John)
 - Code review, debugging, test classes
+- Helping with simulation integration
 
 Bryson Kushner:
-Class UML and State Machine diagrams
+- Class UML and State Machine diagrams

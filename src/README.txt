@@ -46,13 +46,14 @@ Iteration 2:
             - Moved some methods to drone helper class and added new methods to deal with list
 
     2. FireIncidentSubsystem.java
-        - No changes from iteration 1
+            - Reads in all the events, and sorts them via timestamp
+            - Forwards events to the scheduler at proper times with help of the simulator
 
     3. Scheduler.java
-        - Implemented stack implementation for high severity (push to top and pop) and FIFO for other severity
+            - Maintains an event queue that is works via FIFO unless theres a HIGH severity event, which gets pushed to the front
 
     4. FireEvent.java
-        - No changes from iteration 1
+            - Time is now stored as a LocalTime Object
 
     5. DroneSubsystemTest.java
             - Test class for DroneSubsystem
@@ -65,6 +66,9 @@ Iteration 2:
             - Test class for Scheduler
             - Run to test that the Scheduler stores data correctly from FireIncidentSubsystem
 
+    8. Simulation.java
+            - Basic time based simulation
+            - Increments the time up in seconds. If an event happens to be at any of those times, send the event to the scheduler queue
 
 
 

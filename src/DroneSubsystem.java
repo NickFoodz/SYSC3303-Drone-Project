@@ -1,5 +1,6 @@
+import java.io.IOException;
 import java.util.ArrayList;
-
+import java.net.*;
 /**
  * Class Drone Subsystem models a drone consulting the scheduler to check for events
  * @version 2.0 - Added state machine support
@@ -11,6 +12,8 @@ public class DroneSubsystem implements Runnable {
     private final ArrayList<Drone> droneList;
     FireEvent current;
     private int index;
+    private DatagramSocket subsystemSocket;
+    private DatagramPacket subsystemPacket;
 
     private enum droneState{
         IDLE, //Drone is not performing any actions
@@ -32,6 +35,13 @@ public class DroneSubsystem implements Runnable {
         droneList = new ArrayList<>();
         current = null;
         index = 0;
+        try {
+            subsystemSocket = new DatagramSocket();
+        }
+        catch (SocketException se) {
+            se.printStackTrace();
+        }
+
         initializeDrones();
     }
 
@@ -84,6 +94,14 @@ public class DroneSubsystem implements Runnable {
      */
     public void fightFire() throws InterruptedException, RuntimeException {
         current = scheduler.getEvent();
+        byte data[] = new byte[100];
+        subsystemPacket = new DatagramPacket(data, data.length);
+        try {
+            subsystemSocket.receive(subsystemPacket);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
         //If no drones available, wait
         while(droneList.isEmpty()){
             System.out.println("Waiting for drone to return");
@@ -135,6 +153,9 @@ public class DroneSubsystem implements Runnable {
         private FireEvent currentEvent;
         private double travelTime;
 
+        private DatagramPacket dronePacket;
+        private DatagramSocket droneSocket;
+
         /**
          * Constructor for drones
          * @param ID the name of the drone
@@ -143,6 +164,13 @@ public class DroneSubsystem implements Runnable {
             DroneID = ID;
             state = droneState.IDLE;
             travelTime = 0.0;
+
+            try {
+                droneSocket = new DatagramSocket();
+            }
+            catch(SocketException se) {
+                se.printStackTrace();
+            }
         }
 
         /**

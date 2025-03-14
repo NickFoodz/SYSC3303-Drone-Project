@@ -4,6 +4,11 @@
  * @author Nick Fuda
  */
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -14,6 +19,8 @@ public class Scheduler implements Runnable {
     private Simulation simulation;
     private ArrayList<FireEvent> eventList = new ArrayList<>();
 
+    private DatagramSocket schedulerSocket;
+    private DatagramPacket schedulerReceivePacket, schedulerSendPacket;
 
     /**
      * Constructor for scheduler class
@@ -24,6 +31,11 @@ public class Scheduler implements Runnable {
         shutdownFIS = false;
         shutdownDrones = false;
         this.simulation = simulation;
+        try {
+            schedulerSocket = new DatagramSocket(6000);
+        } catch (SocketException se) {
+            se.printStackTrace();
+        }
     }
 
     /**
@@ -49,6 +61,15 @@ public class Scheduler implements Runnable {
                 wait();
             } catch (InterruptedException e) {
             }
+        }
+
+        byte[] msg = "hello".getBytes();
+//        schedulerReceivePacket = new DatagramPacket(data, data.length);
+        try {
+//            schedulerSocket.receive(schedulerReceivePacket);
+            schedulerSendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), 5000);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         //puts HIGH severity FireEvents at the front of the queue, and the rest at the back

@@ -36,7 +36,7 @@ public class DroneSubsystem implements Runnable {
         current = null;
         index = 0;
         try {
-            subsystemSocket = new DatagramSocket();
+            subsystemSocket = new DatagramSocket(5000);
         }
         catch (SocketException se) {
             se.printStackTrace();
@@ -95,13 +95,20 @@ public class DroneSubsystem implements Runnable {
     public void fightFire() throws InterruptedException, RuntimeException {
         current = scheduler.getEvent();
         byte data[] = new byte[100];
+
+        // get next event from the scheduler (replaces scheduler.getEvent())
         subsystemPacket = new DatagramPacket(data, data.length);
         try {
             subsystemSocket.receive(subsystemPacket);
+            // most likely goes to current
+            String received = new String(subsystemPacket.getData(),0,subsystemPacket.getLength());
+            System.out.println(received);
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+
+
         //If no drones available, wait
         while(droneList.isEmpty()){
             System.out.println("Waiting for drone to return");

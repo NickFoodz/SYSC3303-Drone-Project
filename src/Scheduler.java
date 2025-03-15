@@ -50,6 +50,37 @@ public class Scheduler implements Runnable {
     public boolean getShutdownDrones(){return shutdownDrones;}
 
     /**
+     * Gets events from the FIS
+     */
+    public void receiveMessage(){
+        //    public FireEvent(String time, int zoneID, String type, String severity){
+        byte[] rec= new byte[100];
+        DatagramPacket receivePacket = new DatagramPacket(rec, rec.length);
+        try {
+            receiveSocket.receive(receivePacket);
+            String recMsg = new String (receivePacket.getData(), 0, receivePacket.getLength());
+            //If info is from FIS
+            if(receivePacket.getPort() == 5999){
+                //Convert into FireEvent
+                String[] info = recMsg.split(",");
+                if (info.length == 4) {
+                    String time = info[0];
+                    int zoneID = Integer.parseInt(info[1]);
+                    String type = info[2];
+                    String severity = info[3];
+                    FireEvent newEvent = new FireEvent(time, zoneID, type, severity);
+                    addEvent(newEvent);
+                    System.out.println("Received: " + newEvent +" from Fire Incident Subsystem");
+
+            }
+            }
+        } catch (IOException e) { System.out.println("Error Scheduler Receiving");}
+
+
+    }
+
+
+    /**
      * Sends DroneSubsystem a UDP summary of the event
      */
     public void sendToDrone(){
@@ -71,13 +102,7 @@ public class Scheduler implements Runnable {
      * Adds an event to the scheduler
      * @param event the event to be added
      */
-    public synchronized void addEvent(FireEvent event){
-        while(current != null) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-            }
-        }
+    public void addEvent(FireEvent event){
 
         //puts HIGH severity FireEvents at the front of the queue, and the rest at the back
         System.out.println("Event added: " + event);
@@ -87,7 +112,6 @@ public class Scheduler implements Runnable {
             eventList.addLast(event);
         }
         current = eventList.getFirst();
-        notifyAll();
     }
 
     /** OBSOLETE
@@ -144,7 +168,8 @@ public class Scheduler implements Runnable {
     public void run() {
         while(!shutdownFIS && !Thread.currentThread().isInterrupted()){
             try {
-                sendToDrone();
+                receiveMessage();
+                //sendToDrone();
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

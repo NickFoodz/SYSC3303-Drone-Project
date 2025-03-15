@@ -5,6 +5,7 @@
  */
 
 import java.io.*;
+import java.net.*;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,6 +17,7 @@ public class FireIncidentSubsystem implements Runnable {
     private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
     List<FireEvent> allEvents;
+    private DatagramSocket FISSocket;
 
 
     /**
@@ -28,7 +30,9 @@ public class FireIncidentSubsystem implements Runnable {
         this.simulation = simulation;
         EOF = false;
         allEvents = new ArrayList<>();
-
+        try {
+            FISSocket = new DatagramSocket(5999);
+        } catch (SocketException e) {}
         simulation.setFireIncidentSubsystem(this);
     }
 
@@ -50,6 +54,8 @@ public class FireIncidentSubsystem implements Runnable {
                     String type = info[2];
                     String severity = info[3];
                     FireEvent event = new FireEvent(time, zoneID, type, severity);
+                    String eventStr = event.summarizeEvent();
+                    sendToScheduler(eventStr);
                     System.out.println("Fire Incident Subsystem Sent: " + event);
                     //Checks the format of the event for the drone in UDP
                     //System.out.println(event.summarizeEvent());
@@ -67,6 +73,19 @@ public class FireIncidentSubsystem implements Runnable {
             throw new RuntimeException(ex);
         }
         EOF = true;
+    }
+
+    private void sendToScheduler(String eventInfo){
+        byte[] outgoingEvent = new byte[100];
+        outgoingEvent = eventInfo.getBytes();
+
+        try {
+            DatagramPacket outgoing = new DatagramPacket(outgoingEvent, eventInfo.length(), InetAddress.getLocalHost(), 6001);
+            FISSocket.send(outgoing);
+        } catch (IOException e) {
+            System.out.println("Could not send event");
+        }
+
     }
 
     /**
@@ -108,4 +127,5 @@ public class FireIncidentSubsystem implements Runnable {
         scheduler.setShutdownFIS();
         System.out.println("Fire Incident Subsystem Shutting Down");
     }
+
 }

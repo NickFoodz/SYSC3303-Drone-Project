@@ -5,10 +5,7 @@
  */
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -19,7 +16,7 @@ public class Scheduler implements Runnable {
     private Simulation simulation;
     private ArrayList<FireEvent> eventList = new ArrayList<>();
 
-    private DatagramSocket schedulerSocket;
+    private DatagramSocket sendSocket, receiveSocket;
     private DatagramPacket schedulerReceivePacket, schedulerSendPacket;
 
     /**
@@ -32,7 +29,8 @@ public class Scheduler implements Runnable {
         shutdownDrones = false;
         this.simulation = simulation;
         try {
-            schedulerSocket = new DatagramSocket(6000);
+            sendSocket = new DatagramSocket(6000);
+            receiveSocket = new DatagramSocket(6001);
         } catch (SocketException se) {
             se.printStackTrace();
         }
@@ -52,6 +50,24 @@ public class Scheduler implements Runnable {
     public boolean getShutdownDrones(){return shutdownDrones;}
 
     /**
+     * Sends DroneSubsystem a UDP summary of the event
+     */
+    public void sendToDrone(){
+        if(current != null){
+            byte[] outData = new byte[100];
+            String eventString = current.summarizeEvent();
+            outData = eventString.getBytes();
+
+            try {
+                //Can change from a localhost if needed on multiple computers
+                DatagramPacket sendEvent = new DatagramPacket(outData, eventString.length(),InetAddress.getLocalHost(), 5000);
+                //Try sending to Drone subsystem
+                sendSocket.send(sendEvent);
+            } catch (IOException e) {}
+        }
+    }
+
+    /**
      * Adds an event to the scheduler
      * @param event the event to be added
      */
@@ -61,15 +77,6 @@ public class Scheduler implements Runnable {
                 wait();
             } catch (InterruptedException e) {
             }
-        }
-
-        byte[] msg = "hello".getBytes();
-//        schedulerReceivePacket = new DatagramPacket(data, data.length);
-        try {
-//            schedulerSocket.receive(schedulerReceivePacket);
-            schedulerSendPacket = new DatagramPacket(msg, msg.length, InetAddress.getLocalHost(), 5000);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         //puts HIGH severity FireEvents at the front of the queue, and the rest at the back
@@ -83,7 +90,7 @@ public class Scheduler implements Runnable {
         notifyAll();
     }
 
-    /**
+    /** OBSOLETE
      * Get the event stored
      * @return the event stored
      */
@@ -137,6 +144,7 @@ public class Scheduler implements Runnable {
     public void run() {
         while(!shutdownFIS && !Thread.currentThread().isInterrupted()){
             try {
+                sendToDrone();
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

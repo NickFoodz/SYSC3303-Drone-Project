@@ -15,14 +15,6 @@ public class DroneSubsystem implements Runnable {
     private DatagramSocket subsystemSocket;
     private DatagramPacket subsystemPacket;
 
-    private enum droneState{
-        IDLE, //Drone is not performing any actions
-        ENROUTE, //Drone is approaching an incident
-        DEPLOYINGAGENT, //Drone is deploying firefighting agent
-        RETURNING; //Drone is returning to base
-    }
-
-
     /**
      * Constructor for the Drone Subsystem
      * @param name      name of the drone
@@ -31,7 +23,7 @@ public class DroneSubsystem implements Runnable {
     public DroneSubsystem(String name, Scheduler scheduler) {
         this.name = name;
         this.scheduler = scheduler;
-        droneState state = droneState.IDLE; //Starting state is idle
+        //droneState state = droneState.IDLE; //Starting state is idle
         droneList = new ArrayList<>();
         current = null;
         index = 0;
@@ -50,12 +42,29 @@ public class DroneSubsystem implements Runnable {
      * assume only 1 for iteration 2
      */
     public void initializeDrones(){
-        Drone drone1 = new Drone("Drone 1");
-        //Drone drone2 = new Drone("Drone 2");
-        //Drone drone3 = new Drone("Drone 3");
+        Drone drone1 = new Drone("Drone 1", 5001);
+        Drone drone2 = new Drone("Drone 2", 5002);
+        Drone drone3 = new Drone("Drone 3", 5003);
         droneList.add(drone1);
-        //droneList.add(drone2);
-        //droneList.add(drone3);
+        droneList.add(drone2);
+        droneList.add(drone3);
+    }
+
+    public void manageDrones() {
+        while (true) {
+            //Create buffer and receiving packet
+            byte[] receiveData = new byte[100];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            //Message should be in form "ZONEID:SEVERITY"
+            //Wait for message
+            try {
+                subsystemSocket.receive(receivePacket);
+                String receiveString = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Drone Subsystem received event from Scheduler: " + receiveString);
+            } catch (IOException e) {
+            }
+        }
     }
 
 
@@ -69,7 +78,7 @@ public class DroneSubsystem implements Runnable {
         index ++;
         //change to 2 if 3 drones
         //Index is meant to cycle which drones get assigned which tasks
-        if(index % 1 == 0){
+        if(index % 2 == 0){
             index = 0;
         }
     }
@@ -93,9 +102,8 @@ public class DroneSubsystem implements Runnable {
      * @throws RuntimeException
      */
     public void fightFire() throws InterruptedException, RuntimeException {
-        current = scheduler.getEvent();
-        byte data[] = new byte[100];
-
+        //buffer for data
+        byte[] data = new byte[100];
         // get next event from the scheduler (replaces scheduler.getEvent())
         subsystemPacket = new DatagramPacket(data, data.length);
         try {
@@ -133,11 +141,7 @@ public class DroneSubsystem implements Runnable {
     @Override
     public void run() {
         while (!scheduler.getShutdownDrones()) {
-            try {
-              fightFire();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            manageDrones();
         }
         System.out.println("Shutting down Drone Subsystem");
     }
@@ -160,26 +164,36 @@ public class DroneSubsystem implements Runnable {
         private FireEvent currentEvent;
         private double travelTime;
 
-        private DatagramPacket dronePacket;
+        //Socket to send updates to the Scheduler
         private DatagramSocket droneSocket;
 
         /**
          * Constructor for drones
          * @param ID the name of the drone
          */
-        public Drone(String ID){
+        public Drone(String ID, int socketNumber){
             DroneID = ID;
             state = droneState.IDLE;
             travelTime = 0.0;
-
             try {
-                droneSocket = new DatagramSocket();
-            }
-            catch(SocketException se) {
-                se.printStackTrace();
-            }
+                droneSocket = new DatagramSocket(socketNumber);
+            } catch (SocketException e) {}
         }
 
+        private void checkForInstruction(){
+            //Create buffer and receiving packet
+            byte[] receiveData = new byte[100];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            //Message should be in form "ZONEID:SEVERITY"
+            //Wait for message
+            try {
+                droneSocket.receive(receivePacket);
+                String receiveString = new String(receivePacket.getData(),0,receivePacket.getLength());
+                System.out.println("Drone "+ this.DroneID +" received from Scheduler: "+ receiveString);
+            } catch (IOException e) {}
+
+        }
         /**
          * Drone is dispatched to event and performs firefighting
          * @param e the event

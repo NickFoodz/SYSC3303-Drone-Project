@@ -47,6 +47,14 @@ public class FireEvent {
      */
     public String getType(){return type;}
 
+    /**
+     * Summarizes event in a string to send via UDP
+     * @return a string in the form Time:ZoneID:Type:Severity
+     */
+    public String summarizeEvent(){
+        return new String(this.getTime()+","+ this.getZoneID()+","+ this.getType()+","+ this.getSeverity());
+    }
+
     @Override
     public String toString() {
         return "[Time: " + time +", Zone: " + zoneID + ", Type: " + type + ", Severity: " + severity + "]";

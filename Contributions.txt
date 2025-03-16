@@ -40,6 +40,7 @@ Iteration 3:
 Thomas Imbert
 - Simulation code and integration
 - Sequence Diagram
+- State Machine Diagrams
 
 Elton Kong
 - Sequence diagram

@@ -1,5 +1,6 @@
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.net.*;
 /**
@@ -205,6 +206,7 @@ public class DroneSubsystem {
 
         //Socket to send updates to the Scheduler
         private DatagramSocket droneSocket;
+        private ArrayList<String> log;
 
         /**
          * Constructor for drones
@@ -215,6 +217,8 @@ public class DroneSubsystem {
             DroneID = ID;
             state = droneState.IDLE;
             travelTime = 0.0;
+            log = new ArrayList<>();
+            log.add("IDLE");
             try {
                 droneSocket = new DatagramSocket(socketNumber);
             } catch (SocketException e) {
@@ -347,6 +351,7 @@ public class DroneSubsystem {
          */
         private void enRoute() throws InterruptedException {
             state = droneState.ENROUTE; //Changes state
+            log.add("ENROUTE");
             //sendStatus();
             System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
             //travelTime = methodToCalculateTravelTime
@@ -362,6 +367,7 @@ public class DroneSubsystem {
          */
         private void deployAgent() throws InterruptedException {
             state = droneState.DEPLOYINGAGENT; //Change state
+            log.add("DEPLOYINGAGENT");
             //sendStatus();
             System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() + ", deploying " + putOutFire(currentEvent) + "L of agent");
             int waterToUse = putOutFire(currentEvent);
@@ -375,12 +381,14 @@ public class DroneSubsystem {
          */
         private void returnToBase() throws InterruptedException {
             state = droneState.RETURNING;
+            log.add("RETURNING");
             //sendStatus();
             System.out.println(DroneID + " returning to base");
             Thread.sleep(500); //change to travel time
             travelTime = 0;
             //Return to the first state
             state = droneState.IDLE;
+            log.add("IDLE");
             //sendStatus();
         }
 
@@ -418,6 +426,15 @@ public class DroneSubsystem {
          */
         public int getDroneYLocation() {
             return y;
+        }
+
+        /**
+         * Get the state logs for debugging
+         *
+         * @return array list of log containing states the drone went through
+         */
+        public ArrayList<String> getLog() {
+            return log;
         }
 
         @Override

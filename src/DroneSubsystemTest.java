@@ -24,6 +24,10 @@ class DroneSubsystemTest {
 
         drone.startEvent(fireEvent);
 
-        assertEquals(DroneSubsystem.Drone.droneState.IDLE, drone.getState(), "drone has returned to IDLE state");
+        assertEquals("IDLE", drone.getLog().get(0), "drone starts at IDLE state");
+        assertEquals("ENROUTE", drone.getLog().get(1), "drone moves onto ENROUTE state");
+        assertEquals("DEPLOYINGAGENT", drone.getLog().get(2), "drone moves onto DEPLOYINGAGENT state");
+        assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
+        assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
     }
 }

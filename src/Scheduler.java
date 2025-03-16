@@ -47,6 +47,12 @@ public class Scheduler {
 
     }
 
+    public void TESTING_closeSockets(){
+        sendSocket.close();
+        receiveSocket.close();
+        acceptSocket.close();
+    }
+
     /**
      * Gets events from the FIS and messages from the Drones
      */

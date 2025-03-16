@@ -25,6 +25,7 @@ class SchedulerTest {
         scheduler.addEvent(highEvent);
 
         assertEquals(highEvent, scheduler.getEvent().getFirst());
+        scheduler.TESTING_closeSockets();
     }
 
     @Test
@@ -36,6 +37,7 @@ class SchedulerTest {
         scheduler.addEvent(event2);
 
         assertEquals(event2, scheduler.getEvent().getLast());
+        scheduler.TESTING_closeSockets();
     }
 
     @Test
@@ -49,5 +51,6 @@ class SchedulerTest {
         scheduler.notifyAcceptance(event2);
 
         assertEquals(event1, scheduler.getCurrentEvent());
+        scheduler.TESTING_closeSockets();
     }
 }

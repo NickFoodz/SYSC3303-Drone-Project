@@ -11,6 +11,7 @@ class DroneSubsystemTest {
         droneSubsystem.initializeDrones();
 
         assertEquals(3, droneSubsystem.getDroneList().size(), "all drones are initialized");
+        droneSubsystem.TESTING_closeSockets();
     }
 
     @Test
@@ -29,5 +30,6 @@ class DroneSubsystemTest {
         assertEquals("DEPLOYINGAGENT", drone.getLog().get(2), "drone moves onto DEPLOYINGAGENT state");
         assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
         assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
+        droneSubsystem.TESTING_closeSockets();
     }
 }

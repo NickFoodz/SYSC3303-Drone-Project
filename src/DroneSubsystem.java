@@ -38,6 +38,14 @@ public class DroneSubsystem {
         }
     }
 
+    public void TESTING_closeSockets(){
+        subsystemSocket.close();
+        droneSendSocket.close();
+        for(int i = 0; i < droneList.size(); i++){
+            droneList.get(i).TESTING_closeSocket();
+        }
+    }
+
     /**
      * Initializes Drones and adds them to the list that is maintained by the subsystem
      */
@@ -222,7 +230,12 @@ public class DroneSubsystem {
             try {
                 droneSocket = new DatagramSocket(socketNumber);
             } catch (SocketException e) {
+                e.printStackTrace();
             }
+        }
+
+        public void TESTING_closeSocket(){
+            this.droneSocket.close();
         }
 
         /**

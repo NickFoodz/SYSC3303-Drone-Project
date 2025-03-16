@@ -70,6 +70,10 @@ public class FireIncidentSubsystem {
         EOF = true;
     }
 
+    /**
+     * Use UDP and IP to send the extracted events from the csv to the scheduler
+     * @param eventInfo
+     */
     private void sendToScheduler(String eventInfo){
         byte[] outgoingEvent = new byte[100];
         outgoingEvent = eventInfo.getBytes();
@@ -85,6 +89,10 @@ public class FireIncidentSubsystem {
     }
 
 
+    /**
+     * Main method to run  FIS
+     * @param args
+     */
     public static void main(String[] args) {
         FireIncidentSubsystem fis = new FireIncidentSubsystem();
         System.out.println("Fire Incident Subsystem Online\n");

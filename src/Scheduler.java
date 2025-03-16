@@ -12,9 +12,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Scheduler {
     private FireEvent current;
-    private boolean shutdownFIS;
-    private boolean shutdownDrones;
-    private Simulation simulation;
     private ArrayList<FireEvent> eventList = new ArrayList<>();
 
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
@@ -25,9 +22,8 @@ public class Scheduler {
     public Scheduler(){
         eventList = new ArrayList<>();
         current = null;
-        shutdownFIS = false;
-        shutdownDrones = false;
-        this.simulation = simulation;
+
+        //Set up the sockets
         try {
             sendSocket = new DatagramSocket(6000);
             receiveSocket = new DatagramSocket(6001);
@@ -37,37 +33,29 @@ public class Scheduler {
         }
     }
 
+    /**
+     * Initializes the threads to send and receive messages
+     */
     public void initializeSendReceiveThreads(){
+        //Create threads
         Thread sendThread = new Thread(new SchedulerSend(this));
         Thread recThread = new Thread(new SchedulerReceive(this));
+        //Start the threads
         sendThread.start();
         recThread.start();
 
     }
 
-
-    /**
-     * Used by FireIncidentSystem to signal to scheduler that it has completed its data cycle.
-     */
-    public synchronized void setShutdownFIS(){
-        shutdownFIS = true;
-    }
-
-    /**
-     * Allows drone subsystem to check if everything is shutdown
-     * @return
-     */
-    public boolean getShutdownDrones(){return shutdownDrones;}
-
     /**
      * Gets events from the FIS and messages from the Drones
      */
     public void receiveMessage(){
-        //    public FireEvent(String time, int zoneID, String type, String severity){
+        //Constructor for  FireEvent(String time, int zoneID, String type, String severity){
+        //Create the buffer and datagram packets
         byte[] rec= new byte[100];
         DatagramPacket receivePacket = new DatagramPacket(rec, rec.length);
         try {
-
+            //Receive messages and convert to strings
             receiveSocket.receive(receivePacket);
             String recMsg = new String (receivePacket.getData(), 0, receivePacket.getLength());
 
@@ -81,19 +69,19 @@ public class Scheduler {
                     String type = info[2];
                     String severity = info[3];
                     FireEvent newEvent = new FireEvent(time, zoneID, type, severity);
+
+                    //Print that the event was received with its info
                     System.out.println("Received: " + newEvent +" from Fire Incident Subsystem");
+                    //Add to the event queue
                     addEvent(newEvent);
                 }
 
-                //Otherwise if from a drone
+                //Otherwise if from a drone print it directly to the terminal
             }else if(receivePacket.getPort() == (5001 | 5002 | 5003)){
-
+                System.out.println(recMsg);
             }
         } catch (IOException e) { System.out.println("Error Scheduler Receiving");}
-
-
     }
-
 
     /**
      * Sends DroneSubsystem a UDP summary of the event
@@ -157,10 +145,12 @@ public class Scheduler {
         } else {
             current = null;
         }
-
-        notifyAll();
     }
 
+    /**
+     * Main method that runs the scheduler
+     * @param args none
+     */
     public static void main(String[] args) {
         Scheduler scheduler = new Scheduler();
         scheduler.initializeSendReceiveThreads();
@@ -171,23 +161,10 @@ public class Scheduler {
     }
 
 
-//    @Override
-//    public void run() {
-//        while(!shutdownFIS && !Thread.currentThread().isInterrupted()){
-//            try {
-//                receiveMessage();
-//                //sendToDrone();
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//                break;
-//            }
-//        }
-//        //prepare to shutdown after last data read from csv
-//        shutdown();
-//        System.out.println("Shutting down Scheduler");
-//    }
-
+    /**
+     * Helper class that allows packet receiving on its own thread
+     * to prevent deadlock
+     */
     private class SchedulerReceive implements Runnable{
         Scheduler s;
         public SchedulerReceive(Scheduler scheduler){
@@ -202,6 +179,10 @@ public class Scheduler {
         }
     }
 
+    /**
+     * Helper class that allows packet sending on its own thread
+     * to prevent deadlock
+     */
     private class SchedulerSend implements Runnable{
 
         Scheduler s;

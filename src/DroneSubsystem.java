@@ -19,7 +19,7 @@ public class DroneSubsystem {
 
     /**
      * Constructor for the Drone Subsystem
-     * @param name      name of the drone
+     * @param name      name of the drone subsystem
      */
     public DroneSubsystem(String name) {
         this.name = name;
@@ -59,7 +59,9 @@ public class DroneSubsystem {
         d3.start();
     }
 
-
+    /**
+     * Main running method, which receives a packet, converts it into an event and assigns a drone
+     */
     public void manageDrones() {
         while (true) {
             //Create buffer and receiving packet
@@ -107,7 +109,7 @@ public class DroneSubsystem {
 
     /**
      * Returns the list of drones
-     * @return
+     * @return the drone list
      */
     public ArrayList<Drone> getDroneList() {
         return droneList;
@@ -122,7 +124,10 @@ public class DroneSubsystem {
         droneList.add(drone);
     }
 
-
+    /**
+     * Main method of the program
+     * @param args
+     */
     public static void main(String[] args) {
         DroneSubsystem droneSub = new DroneSubsystem("Drone Subsystem");
         droneSub.initializeDrones();
@@ -181,17 +186,20 @@ public class DroneSubsystem {
         }
 
         /**
-         * Drone accepts a task from the scheduler when able
+         * Drone accepts a task from the scheduler when able and signals it is accepted
+         * Allowing the scheduler to move on and send the next task to the subsystem
          */
         private void acceptTask(){
             try {
-            byte[] acceptancemsg = new byte[100];
-            String accept = "ACCEPT";
-            acceptancemsg= accept.getBytes();
-            DatagramPacket acceptPacket = new DatagramPacket(acceptancemsg, 6, InetAddress.getLocalHost(), 6002);
-            this.droneSocket.send(acceptPacket);
-            } catch (IOException e) {
-            }
+                //Buffer
+                byte[] acceptancemsg = new byte[100];
+                String accept = "ACCEPT";
+                acceptancemsg= accept.getBytes();
+                //can change InetAddress to be the host of the scheduler if different
+                DatagramPacket acceptPacket = new DatagramPacket(acceptancemsg, 6, InetAddress.getLocalHost(), 6002);
+                //Send to the scheduler that the task is accepted
+                this.droneSocket.send(acceptPacket);
+            } catch (IOException e) {}
         }
 
         /**

@@ -1,22 +1,53 @@
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.lang.reflect.Field;
+import java.net.DatagramSocket;
+import java.net.DatagramPacket;
+
 
 class SchedulerTest {
     private Scheduler scheduler;
-    private Simulation simulation;
-    private FireEvent fireEvent;
-    private Thread schedulerTestThread;
 
     @BeforeEach
     void setUp() {
-        simulation = new Simulation(20);
         scheduler = new Scheduler();
-        fireEvent = new FireEvent("14:03:15",3,"FIRE_DETECTED","High");
     }
 
     @Test
-    void testScheduler() throws InterruptedException {
+    public void testAddEvent_HighSeverity_FirstInQueue() {
+        FireEvent lowEvent = new FireEvent("12:00", 1, "Forest", "Low");
+        FireEvent highEvent = new FireEvent("12:05", 2, "Building", "High");
+
+        scheduler.addEvent(lowEvent);
+        scheduler.addEvent(highEvent);
+
+        assertEquals(highEvent, scheduler.getEvent().getFirst());
+    }
+
+    @Test
+    public void testAddEvent_LowSeverity_AddedToBack() {
+        FireEvent event1 = new FireEvent("12:00", 1, "Forest", "Low");
+        FireEvent event2 = new FireEvent("12:05", 2, "Building", "Low");
+
+        scheduler.addEvent(event1);
+        scheduler.addEvent(event2);
+
+        assertEquals(event2, scheduler.getEvent().getLast());
+    }
+
+    @Test
+    public void testNotifyAcceptance_UpdatesCurrentEvent() {
+        FireEvent event1 = new FireEvent("12:00", 1, "Forest", "Low");
+        FireEvent event2 = new FireEvent("12:05", 2, "Building", "High");
+
+        scheduler.addEvent(event1);
+        scheduler.addEvent(event2);
+
+        scheduler.notifyAcceptance(event2);
+
+        assertEquals(event1, scheduler.getCurrentEvent());
     }
 }

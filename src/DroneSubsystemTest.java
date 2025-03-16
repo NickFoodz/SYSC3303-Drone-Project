@@ -15,37 +15,16 @@ class DroneSubsystemTest {
 
     @BeforeEach
     void setUp() {
-        simulation = new Simulation(1);
-        fireIncidentSubsystem = new FireIncidentSubsystem();
+        droneSubsystem = new DroneSubsystem("test");
     }
 
     @Test
     void testInitializeDrones() {
-        assertEquals(1, droneSubsystem.getDroneList().size());
+        droneSubsystem.initializeDrones();
+
+        assertEquals(3, droneSubsystem.getDroneList().size());
     }
 
-    @Test
-    void testFightFire() throws InterruptedException {
-        simulationTestThread = new Thread(simulation);
 
 
-        simulationTestThread.start();
-        schedulerTestThread.start();
-        fireIncidentSubsystemTestThread.start();
-        droneSubSystemTestThread.start();
-
-        Thread.sleep(6000);
-
-        assertEquals(1, droneSubsystem.getDroneList().size(), "All drones have returned");
-
-        // Stop the thread
-        droneSubSystemTestThread.interrupt();
-        fireIncidentSubsystemTestThread.interrupt();
-        schedulerTestThread.interrupt();
-        simulationTestThread.interrupt();
-        fireIncidentSubsystemTestThread.join();
-        droneSubSystemTestThread.join();
-        schedulerTestThread.join();
-        simulationTestThread.join();
-    }
 }

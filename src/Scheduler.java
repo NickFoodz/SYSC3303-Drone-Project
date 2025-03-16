@@ -7,12 +7,13 @@
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Scheduler {
     private FireEvent current;
-    private ArrayList<FireEvent> eventList = new ArrayList<>();
+    private LinkedList<FireEvent> eventList = new LinkedList<>();
 
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
 
@@ -20,7 +21,7 @@ public class Scheduler {
      * Constructor for scheduler class
      */
     public Scheduler(){
-        eventList = new ArrayList<>();
+        eventList = new LinkedList<>();
         current = null;
 
         //Set up the sockets
@@ -136,11 +137,26 @@ public class Scheduler {
     }
 
     /**
+     * Returns the event list stored in the scheduler
+     */
+    public LinkedList<FireEvent> getEvent() {
+        return eventList;
+    }
+
+    /**
+     * Returns the current event of the scheduler
+     */
+    public FireEvent getCurrentEvent() {
+        return current;
+    }
+
+    /**
      * Notify all processes that an event was handled, clearing the scheduler for a new event
      * @param event the event that will be reported as complete
      */
     public void notifyAcceptance(FireEvent event){
         System.out.println("Event being handled: " + event);
+        eventList.remove(event);
         if(!eventList.isEmpty()){
             current = eventList.getFirst();
         } else {

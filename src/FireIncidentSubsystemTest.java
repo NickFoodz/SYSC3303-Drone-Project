@@ -1,47 +1,34 @@
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.*;
+import java.io.*;
+import java.util.List;
+import java.time.LocalTime;
 
 class FireIncidentSubsystemTest {
-    private Scheduler scheduler;
-    private FireIncidentSubsystem fireIncidentSubsystem;
-    private Simulation simulation;
-    private DroneSubsystem droneSubsystem;
-    private Thread simulationTestThread;
-    private Thread fireIncidentSubsystemTestThread;
-    private Thread droneSubSystemTestThread;
-    private Thread schedulerTestThread;
+    private FireIncidentSubsystem fis;
+    private final String testFilePath = "test_events.csv";
 
     @BeforeEach
-    void setUp() {
-        simulation = new Simulation(20);
-
-        fireIncidentSubsystem = new FireIncidentSubsystem();
+    public void setUp() throws IOException {
+        fis = new FireIncidentSubsystem();
     }
 
     @Test
-    void testGetData() throws InterruptedException {
-        simulationTestThread = new Thread(simulation);
-        fireIncidentSubsystemTestThread = new Thread();
-        schedulerTestThread = new Thread();
+    public void testGetData() {
+        fis.getData();
+        List<FireEvent> events = fis.allEvents;
 
-        simulationTestThread.start();
-        schedulerTestThread.start();
-        fireIncidentSubsystemTestThread.start();
-        droneSubSystemTestThread.start();
+        assertEquals(4, events.size());
+        assertEquals("13:00:05", events.get(0).getTime());
+        assertEquals("13:03:15", events.get(1).getTime());
+        assertEquals("14:03:15", events.get(2).getTime());
+        assertEquals("14:10:00", events.get(3).getTime());
+    }
 
-        Thread.sleep(6000);
+    @Test
+    public void testConsumeEvent() {
+        fis.consumeEvent(LocalTime.of(13, 0, 0));
 
-        assertTrue(fireIncidentSubsystem.EOF);
-
-        // Stop the thread
-        droneSubSystemTestThread.interrupt();
-        fireIncidentSubsystemTestThread.interrupt();
-        schedulerTestThread.interrupt();
-        fireIncidentSubsystemTestThread.join();
-        droneSubSystemTestThread.join();
-        schedulerTestThread.join();
-
+        assertEquals(0, fis.allEvents.size());
     }
 }

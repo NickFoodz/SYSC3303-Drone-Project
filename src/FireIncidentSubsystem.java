@@ -5,6 +5,7 @@
  */
 
 import java.io.*;
+import java.net.*;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,10 +14,14 @@ import java.util.List;
 public class FireIncidentSubsystem implements Runnable {
     private final Scheduler scheduler; //Scheduler
     private final Simulation simulation; //Simulation **NEEDED**
-    private final String eventFilePath = "../Sample_event_file.csv"; //File path to the .csv
+    private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
     List<FireEvent> allEvents;
 
+    private DatagramSocket sendReceieveSocket;
+    private DatagramPacket receivePacket, sendPacket;
+    private InetAddress hostAddress;
+    private int hostPortNum;
 
     /**
      * Constructor
@@ -30,6 +35,56 @@ public class FireIncidentSubsystem implements Runnable {
         allEvents = new ArrayList<>();
 
         simulation.setFireIncidentSubsystem(this);
+    }
+
+    public FireIncidentSubsystem() {
+        this.scheduler = null;
+        this.simulation = null;
+        EOF = false;
+        allEvents = new ArrayList<>();
+
+//        simulation.setFireIncidentSubsystem(this);
+
+        try {
+            sendReceieveSocket = new DatagramSocket();
+            hostAddress = InetAddress.getLocalHost();
+            hostPortNum = 5000;
+        } catch ( SocketException | UnknownHostException se) {
+            se.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    public String rpc_send(DatagramPacket dataToSend, DatagramPacket dataReceived) {
+        try {
+            sendReceieveSocket.send(dataToSend);
+            String dataSent = new String(dataToSend.getData(), 0, dataToSend.getLength());
+            System.out.println("[Client -> Host] Send request: " + dataSent);
+
+            sendReceieveSocket.receive(dataReceived);
+            String reply = new String(dataReceived.getData(), 0, dataReceived.getLength());
+            System.out.println("[Client <- Host] Got reply: " + reply);
+
+            sendReceieveSocket.receive(dataReceived);
+            String message = new String(dataReceived.getData(), 0, dataReceived.getLength());
+            System.out.println("[Server -> Host -> Client] Got reply: " + message);
+
+            return message;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public void startRPC() {
+        String toSend = "Hello";
+        byte[] usernameData = toSend.getBytes();
+        sendPacket = new DatagramPacket(usernameData, usernameData.length, hostAddress, hostPortNum);
+        byte receiveUsernameData[] = new byte[100];
+        receivePacket = new DatagramPacket(receiveUsernameData, receiveUsernameData.length);
+        String received = rpc_send(sendPacket, receivePacket);
+        System.out.println(received);
     }
 
     /**
@@ -105,5 +160,11 @@ public class FireIncidentSubsystem implements Runnable {
         }
         scheduler.setShutdownFIS();
         System.out.println("Fire Incident Subsystem Shutting Down");
+    }
+
+    public static void main(String[] args) {
+        FireIncidentSubsystem fis = new FireIncidentSubsystem();
+        fis.startRPC();
+
     }
 }

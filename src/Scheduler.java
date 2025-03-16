@@ -4,8 +4,13 @@
  * @author Nick Fuda
  */
 
+import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Scheduler implements Runnable {
     private FireEvent current;
@@ -13,7 +18,12 @@ public class Scheduler implements Runnable {
     private boolean shutdownDrones;
     private Simulation simulation;
     private ArrayList<FireEvent> eventList = new ArrayList<>();
-
+    private DatagramSocket clientSocket, serverSocket;
+    private InetAddress serverAddress;
+    private int serverPort = 6000;
+    private InetAddress lastClientAddress;
+    private int lastClientPort;
+    private Thread clientToServerThread, serverToClientThread;
 
     /**
      * Constructor for scheduler class
@@ -24,6 +34,97 @@ public class Scheduler implements Runnable {
         shutdownFIS = false;
         shutdownDrones = false;
         this.simulation = simulation;
+        try {
+            clientSocket = new DatagramSocket(5000);
+            serverSocket = new DatagramSocket(5001);
+            serverAddress = InetAddress.getLocalHost();
+        } catch (UnknownHostException | SocketException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    public void startRPC() {
+        System.out.println(
+                "Host started on port " + clientSocket.getLocalPort() + " and " + serverSocket.getLocalPort() + "\n");
+        clientToServerThread = new Thread(new ClientToServer());
+        serverToClientThread = new Thread(new ServerToClient());
+
+        clientToServerThread.start();
+        serverToClientThread.start();
+    }
+
+    private class ClientToServer implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    // Client packet gets received
+                    byte[] receiveData = new byte[100];
+                    DatagramPacket clientPacket = new DatagramPacket(receiveData, receiveData.length);
+                    clientSocket.receive(clientPacket);
+
+                    // get request from client
+                    String message = new String(clientPacket.getData(), 0, clientPacket.getLength());
+                    System.out.println("[Host] Got from client: " + message + " (from " + clientPacket.getAddress()
+                            + ":" + clientPacket.getPort() + ")");
+
+                    // Save the clients address (localhost in our case) and port number for sending
+                    // the packet back
+                    synchronized (Scheduler.this) {
+                        lastClientAddress = clientPacket.getAddress();
+                        lastClientPort = clientPacket.getPort();
+                    }
+
+                    // reply to client
+                    String acceptMessage = "ACCEPT(" + message + ")";
+                    byte[] acceptData = acceptMessage.getBytes();
+                    DatagramPacket acceptPacket = new DatagramPacket(acceptData, acceptData.length,
+                            clientPacket.getAddress(), clientPacket.getPort());
+                    clientSocket.send(acceptPacket);
+                    System.out.println("[Host -> Client] Sent immediate ACCEPT to " + clientPacket.getAddress() + ":"
+                            + clientPacket.getPort());
+
+                    // forward to server
+                    DatagramPacket serverPacket = new DatagramPacket(receiveData, clientPacket.getLength(),
+                            serverAddress, serverPort);
+                    serverSocket.send(serverPacket);
+                    System.out.println("[Host -> Server] Forwarded request to server: " + message + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    private class ServerToClient implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    // Server packet gets received
+                    byte[] receiveData = new byte[100];
+                    DatagramPacket serverPacket = new DatagramPacket(receiveData, receiveData.length);
+                    serverSocket.receive(serverPacket);
+
+                    String message = new String(serverPacket.getData(), 0, serverPacket.getLength());
+                    System.out.println("[Host] Got from server: " + message + " (from " + serverPacket.getAddress()
+                            + ":" + serverPacket.getPort() + ")");
+
+                    // send response back to the last known client
+                    synchronized (Scheduler.this) {
+                        DatagramPacket clientPacket = new DatagramPacket(receiveData, serverPacket.getLength(),
+                                lastClientAddress, lastClientPort);
+                        clientSocket.send(clientPacket);
+                        System.out.println("[Host -> Client] Forwarded server response to " + lastClientAddress + ":"
+                                + lastClientPort + ": " + message + "\n");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
@@ -130,15 +231,7 @@ public class Scheduler implements Runnable {
     public static void main(String[] args) {
         Simulation simulation = new Simulation(1);
         Scheduler scheduler = new Scheduler(simulation);
-
-        Thread simulationThread = new Thread(simulation);
-        Thread schedulerThread = new Thread(scheduler);
-        Thread fis = new Thread( new FireIncidentSubsystem(scheduler, simulation));
-        Thread drone1 = new Thread(new DroneSubsystem("Drone 1", scheduler));
-
-        simulationThread.start();
-        fis.start();
-        schedulerThread.start();
-        drone1.start();
+        scheduler.startRPC();
     }
+
 }

@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.net.*;
 import java.util.ArrayList;
 
 /**
@@ -15,6 +17,11 @@ public class DroneSubsystem implements Runnable {
         DEPLOYINGAGENT, //Drone is deploying firefighting agent
         RETURNING; //Drone is returning to base
     }
+    //iter3
+    private DatagramPacket receivePacket, responsePacket;
+    private DatagramSocket sendReceiveSocket;
+    private InetAddress hostAddress;
+    private int hostPortNum;
 
     /**
      * Constructor for the Drone Subsystem
@@ -28,6 +35,58 @@ public class DroneSubsystem implements Runnable {
         droneList = new ArrayList<>();
         initializeDrones();
     }
+
+    public DroneSubsystem(String name) {
+        this.name = name;
+        this.scheduler = null;
+        droneState state = droneState.IDLE; //Starting state is idle
+        droneList = new ArrayList<>();
+        initializeDrones();
+
+        //iter3
+        try {
+            sendReceiveSocket = new DatagramSocket(6000);
+            hostAddress = InetAddress.getLocalHost();
+            hostPortNum = 5001;
+        } catch (SocketException | UnknownHostException se) {
+            se.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+
+    public void rpc_send(DatagramPacket dataToSend, DatagramPacket dataReceived) {
+        try {
+            // Server is waiting here...
+
+            sendReceiveSocket.receive(dataReceived);
+
+            String request = new String(dataReceived.getData(), 0, dataReceived.getLength());
+            System.out.println("[Server] Received: " + request + " from Host(" + dataReceived.getAddress() + ":"
+                    + dataReceived.getPort() + ")");
+
+            String response = request + " handled!";
+
+            dataToSend.setData(response.getBytes());
+            sendReceiveSocket.send(dataToSend);
+            System.out.println("[Server] Sent response back to Host: " + response);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void startRPC() {
+        while (true) {
+            byte receiveData[] = new byte[100];
+            receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            byte responseData[] = new byte[100];
+            responsePacket = new DatagramPacket(responseData, responseData.length, hostAddress, hostPortNum);
+
+            rpc_send(responsePacket, receivePacket);
+        }
+    }
+
 
     /**
      * Initializes subsystem to have 3 drones
@@ -88,6 +147,11 @@ public class DroneSubsystem implements Runnable {
             fightFire();
         }
         System.out.println("Shutting down Drone Subsystem");
+    }
+
+    public static void main(String[] args) {
+        DroneSubsystem ds = new DroneSubsystem("Subsystem 1");
+        ds.startRPC();
     }
 
 

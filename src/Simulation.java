@@ -1,4 +1,5 @@
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Simulation Class, simulates time incrementing for event handling
@@ -13,6 +14,11 @@ public class Simulation implements Runnable {
 
     public Simulation(int simSpeed) {
         this.simulationSpeed = simSpeed;
+        running = true;
+    }
+    public Simulation(int simSpeed, FireIncidentSubsystem f) {
+        this.simulationSpeed = simSpeed;
+        this.incidentSubsystem = f;
         running = true;
     }
 
@@ -32,7 +38,8 @@ public class Simulation implements Runnable {
             }
 
             LocalTime currentSimTime = LocalTime.of(getHours(), getMinutes(), getSeconds());
-//            System.out.println(currentSimTime); //testing
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+//            System.out.println(currentSimTime.format(formatter)); //testing
 
             // check with FireIncidentSubsystem if an event should occur now
             incidentSubsystem.consumeEvent(currentSimTime);

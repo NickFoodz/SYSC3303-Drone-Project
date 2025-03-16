@@ -4,53 +4,32 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DroneSubsystemTest {
-    private Scheduler scheduler;
-    private FireIncidentSubsystem fireIncidentSubsystem;
-    private DroneSubsystem droneSubsystem;
-    private Simulation simulation;
-    private Thread simulationTestThread;
-    private Thread fireIncidentSubsystemTestThread;
-    private Thread droneSubSystemTestThread;
-    private Thread schedulerTestThread;
-
-    @BeforeEach
-    void setUp() {
-        simulation = new Simulation(1);
-        scheduler = new Scheduler(simulation);
-        droneSubsystem = new DroneSubsystem("testDroneSubsystem", scheduler);
-        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler, simulation);
-    }
+    private DroneSubsystem droneSubsystem = new DroneSubsystem("testDroneSubsystem");
 
     @Test
     void testInitializeDrones() {
-        assertEquals(1, droneSubsystem.getDroneList().size());
+        droneSubsystem.initializeDrones();
+
+        assertEquals(3, droneSubsystem.getDroneList().size(), "all drones are initialized");
+        droneSubsystem.TESTING_closeSockets();
     }
 
     @Test
-    void testFightFire() throws InterruptedException {
-        simulationTestThread = new Thread(simulation);
-        fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
-        droneSubSystemTestThread = new Thread(droneSubsystem);
-        schedulerTestThread = new Thread(scheduler);
+    void testDroneStateChange() throws InterruptedException {
+        droneSubsystem.initializeDrones();
+        DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);
 
-        simulationTestThread.start();
-        schedulerTestThread.start();
-        fireIncidentSubsystemTestThread.start();
-        droneSubSystemTestThread.start();
+        assertEquals(DroneSubsystem.Drone.droneState.IDLE, drone.getState(), "drone starts in state IDLE");
 
-        Thread.sleep(6000);
+        FireEvent fireEvent = new FireEvent("13:00:05",3,"FIRE_DETECTED","Low");
 
-        assertEquals(1, droneSubsystem.getDroneList().size(), "All drones have returned");
-        assertNull(scheduler.getEvent(), "All events are handled");
+        drone.startEvent(fireEvent);
 
-        // Stop the thread
-        droneSubSystemTestThread.interrupt();
-        fireIncidentSubsystemTestThread.interrupt();
-        schedulerTestThread.interrupt();
-        simulationTestThread.interrupt();
-        fireIncidentSubsystemTestThread.join();
-        droneSubSystemTestThread.join();
-        schedulerTestThread.join();
-        simulationTestThread.join();
+        assertEquals("IDLE", drone.getLog().get(0), "drone starts at IDLE state");
+        assertEquals("ENROUTE", drone.getLog().get(1), "drone moves onto ENROUTE state");
+        assertEquals("DEPLOYINGAGENT", drone.getLog().get(2), "drone moves onto DEPLOYINGAGENT state");
+        assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
+        assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
+        droneSubsystem.TESTING_closeSockets();
     }
 }

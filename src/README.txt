@@ -71,6 +71,31 @@ Iteration 2:
             - Increments the time up in seconds. If an event happens to be at any of those times, send the event to the scheduler queue
 
 
+Iteration 3:
+    1. DroneSubsystem.java
+            - UDP for communicating between the drone subsystem and the scheduler, the drone subsystem and the drones, and the drones and the scheduler
+
+    2. FireIncidentSubsystem.java
+            - Fixed simulator adding events at proper times
+            - UDP for communicating between scheduler
+
+    3. Scheduler.java
+            - UDP for communicating with FireIncidentSubsystem and DroneSubsystem, as well as status messages of the drones
+
+    4. FireEvent.java
+            - No Changes
+
+    5. DroneSubsystemTest.java
+            - Test class for DroneSubsystem
+
+    6. FireIncidentSubsystemTest.java
+            - Test class for FireIncidentSubsystemTest
+
+    7. SchedulerTest.java
+            - Test class for Scheduler
+
+    8. Simulation.java
+            - Added a constructor with the new UDP FireIncidentSystem
 
 
 
@@ -82,7 +107,7 @@ Instructions:
   - Replace the assignment to the field eventFilePath in FireIncidentSubsystem.java to the filepath of the
   csv file you wish to simulate.
 
-  - Scheduler contains the main method required to run the simulation. Run this and view the console log
+  - Run the processes in this order: Drone Subsystem, Scheduler, Fire Incident Subsystem
 
   - If performing correctly, the console log will show each thread acting and printing a description of the
-  current tasks as it runs.
+  current tasks as it runs. Each process will print its own log of its process

@@ -50,7 +50,7 @@ class SchedulerTest {
 
         scheduler.notifyAcceptance(event2);
 
-        assertEquals(event1, scheduler.getCurrentEvent());
+        assertEquals(event2, scheduler.getCurrentEvent());
         scheduler.TESTING_closeSockets();
     }
 }

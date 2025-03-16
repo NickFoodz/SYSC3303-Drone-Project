@@ -243,8 +243,8 @@ public class DroneSubsystem {
          */
         private void sendStatus() {
             //Set status
-            //String status = new String("State of " + DroneID + ": " + this.state.toString());
-            String status = "Event complete: " + currentEvent.toString();
+            String status = new String("State of " + DroneID + ": " + this.state.toString());
+//            String status = "Event complete: " + currentEvent.toString();
             try {
                 //Set up UDP
                 byte[] statusData = new byte[100];
@@ -261,7 +261,7 @@ public class DroneSubsystem {
          * Drone is idle initially and when awaiting a task
          */
         private void idle() {
-            //sendStatus();
+            sendStatus();
             while (true) {
                 FireEvent newEvent = waitForSignal();
                 if(newEvent != null){
@@ -365,7 +365,7 @@ public class DroneSubsystem {
         private void enRoute() throws InterruptedException {
             state = droneState.ENROUTE; //Changes state
             log.add("ENROUTE");
-            //sendStatus();
+            sendStatus();
             System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
             //travelTime = methodToCalculateTravelTime
             Thread.sleep(500);
@@ -381,7 +381,7 @@ public class DroneSubsystem {
         private void deployAgent() throws InterruptedException {
             state = droneState.DEPLOYINGAGENT; //Change state
             log.add("DEPLOYINGAGENT");
-            //sendStatus();
+            sendStatus();
             System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() + ", deploying " + putOutFire(currentEvent) + "L of agent");
             int waterToUse = putOutFire(currentEvent);
             Thread.sleep(500);
@@ -395,7 +395,7 @@ public class DroneSubsystem {
         private synchronized void returnToBase() throws InterruptedException {
             state = droneState.RETURNING;
             log.add("RETURNING");
-            //sendStatus();
+            sendStatus();
             System.out.println(DroneID + " returning to base");
             Thread.sleep(500); //change to travel time
             travelTime = 0;

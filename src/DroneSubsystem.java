@@ -228,7 +228,8 @@ public class DroneSubsystem {
          */
         private void sendStatus() {
             //Set status
-            String status = new String("State of " + DroneID + ": " + this.state.toString());
+            //String status = new String("State of " + DroneID + ": " + this.state.toString());
+            String status = "Event complete: " + currentEvent.toString();
             try {
                 //Set up UDP
                 byte[] statusData = new byte[100];
@@ -244,7 +245,7 @@ public class DroneSubsystem {
         /**
          * Drone is idle initially and when awaiting a task
          */
-        private synchronized void idle() {
+        private void idle() {
             //sendStatus();
             while (true) {
                 FireEvent newEvent = waitForSignal();

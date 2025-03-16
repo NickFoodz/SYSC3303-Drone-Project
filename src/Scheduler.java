@@ -107,11 +107,11 @@ public class Scheduler {
 
                 acceptSocket.receive(reply);
                 String msg = new String(reply.getData(), 0, reply.getLength());
-                if(msg.equalsIgnoreCase("Accepted")){
+                if(msg.equalsIgnoreCase("ACCEPT")){
                     notifyAcceptance(current);
                 }
                 //Acknowledge acceptance and remove task from list
-                System.out.println("Drone accepted Task\n");
+                System.out.println("Drone accepted task, delegating next\n");
                 eventList.remove(0);
                 current = eventList.getFirst();
 
@@ -198,7 +198,7 @@ public class Scheduler {
                 try{
                 s.sendToDrone();
                 } catch (NoSuchElementException e){
-                    System.out.println("No Tasks to Send");
+                    System.out.println("No pending tasks to send\n");
                 };
                 try {
                     Thread.sleep(5000);

@@ -82,6 +82,11 @@ public class FireIncidentSubsystem {
             DatagramPacket outgoing = new DatagramPacket(outgoingEvent, eventInfo.length(), InetAddress.getLocalHost(), 6001);
             FISSocket.send(outgoing);
             System.out.println("Fire Incident Subsystem Sent: " + eventInfo +"\n");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         } catch (IOException e) {
             System.out.println("Could not send event");
         }

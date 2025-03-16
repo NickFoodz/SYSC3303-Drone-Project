@@ -34,3 +34,24 @@ Hanyoung Chung (John)
 
 Bryson Kushner:
 - Class UML and State Machine diagrams
+
+
+Iteration 3:
+Thomas Imbert
+- Simulation code and integration
+- Sequence Diagram
+
+Elton Kong
+- Sequence diagram
+- Code Review and documentation review
+
+Nick Fuda
+- Each class updated to UDP
+- Some adjustments to the methods to run async
+- Multithreading for drones and scheduler ports
+
+Hanyoung Chung (John)
+- Code review, debugging, test classes
+
+Bryson Kushner:
+- Class UML

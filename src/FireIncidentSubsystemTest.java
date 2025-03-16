@@ -16,17 +16,15 @@ class FireIncidentSubsystemTest {
     @BeforeEach
     void setUp() {
         simulation = new Simulation(20);
-        scheduler = new Scheduler(simulation);
-        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler, simulation);
-        droneSubsystem = new DroneSubsystem("drone1", scheduler);
+
+        fireIncidentSubsystem = new FireIncidentSubsystem();
     }
 
     @Test
     void testGetData() throws InterruptedException {
         simulationTestThread = new Thread(simulation);
-        fireIncidentSubsystemTestThread = new Thread(fireIncidentSubsystem);
-        droneSubSystemTestThread = new Thread(droneSubsystem);
-        schedulerTestThread = new Thread(scheduler);
+        fireIncidentSubsystemTestThread = new Thread();
+        schedulerTestThread = new Thread();
 
         simulationTestThread.start();
         schedulerTestThread.start();

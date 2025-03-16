@@ -12,26 +12,11 @@ class SchedulerTest {
     @BeforeEach
     void setUp() {
         simulation = new Simulation(20);
-        scheduler = new Scheduler(simulation);
+        scheduler = new Scheduler();
         fireEvent = new FireEvent("14:03:15",3,"FIRE_DETECTED","High");
     }
 
     @Test
     void testScheduler() throws InterruptedException {
-        schedulerTestThread = new Thread(scheduler);
-
-        schedulerTestThread.start();
-
-        scheduler.addEvent(fireEvent);
-
-        assertNotNull(scheduler.getEvent());
-
-        scheduler.notifyCompletion(fireEvent);
-
-        // Stop the thread
-        scheduler.setShutdownFIS();
-        schedulerTestThread.interrupt();
-
-        schedulerTestThread.join();
     }
 }

@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class FireIncidentSubsystem implements Runnable {
-    private final Scheduler scheduler; //Scheduler
-    private final Simulation simulation; //Simulation **NEEDED**
+public class FireIncidentSubsystem {
     private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
     List<FireEvent> allEvents;
@@ -23,17 +21,14 @@ public class FireIncidentSubsystem implements Runnable {
     /**
      * Constructor
      *
-     * @param scheduler the scheduler
      */
-    public FireIncidentSubsystem(Scheduler scheduler, Simulation simulation) {
-        this.scheduler = scheduler;
-        this.simulation = simulation;
+    public FireIncidentSubsystem() {
         EOF = false;
         allEvents = new ArrayList<>();
         try {
             FISSocket = new DatagramSocket(5999);
         } catch (SocketException e) {}
-        simulation.setFireIncidentSubsystem(this);
+
     }
 
     /**
@@ -56,7 +51,7 @@ public class FireIncidentSubsystem implements Runnable {
                     FireEvent event = new FireEvent(time, zoneID, type, severity);
                     String eventStr = event.summarizeEvent();
                     sendToScheduler(eventStr);
-                    System.out.println("Fire Incident Subsystem Sent: " + event);
+
                     //Checks the format of the event for the drone in UDP
                     //System.out.println(event.summarizeEvent());
 
@@ -82,50 +77,19 @@ public class FireIncidentSubsystem implements Runnable {
         try {
             DatagramPacket outgoing = new DatagramPacket(outgoingEvent, eventInfo.length(), InetAddress.getLocalHost(), 6001);
             FISSocket.send(outgoing);
+            System.out.println("Fire Incident Subsystem Sent: " + eventInfo);
         } catch (IOException e) {
             System.out.println("Could not send event");
         }
 
     }
 
-    /**
-     * Checks if theres an event to be send out at the current simulation time
-     * Then removes it from the master AllEvents list and sends it out to the scheduler.
-     **/
-    public synchronized void consumeEvent(LocalTime currentSimTime) {
-        while (!allEvents.isEmpty() && allEvents.get(0).getTime().equals(currentSimTime)) {
-            FireEvent event = allEvents.remove(0);
-            //SENDING EVENT TO SCHEDULER:
-            scheduler.addEvent(event);
-        }
 
-        if(allEvents.isEmpty()){
-            notifyAll();
+    public static void main(String[] args) {
+        FireIncidentSubsystem fis = new FireIncidentSubsystem();
+        fis.getData();
+        while(true){
+        //exist (wait for shutdown signal)
         }
     }
-
-    /**
-     * Overrides the run function in Runnable
-     * Reads in FireEvents from file. Then wait for simulation to trigger events. Shutdown after all events are consumed
-     */
-    @Override
-    public void run() {
-        getData();
-
-        synchronized (this) {
-            while (!allEvents.isEmpty()) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    //*FOR JUNIT TESTS*
-                    System.out.println("FireIncidentSubsystem thread interrupted, shutting down.");
-                    Thread.currentThread().interrupt(); // Restore interrupt status
-                    break;
-                }
-            }
-        }
-        scheduler.setShutdownFIS();
-        System.out.println("Fire Incident Subsystem Shutting Down");
-    }
-
 }

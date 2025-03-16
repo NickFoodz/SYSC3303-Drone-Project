@@ -35,7 +35,7 @@ public class Simulation implements Runnable {
 //            System.out.println(currentSimTime); //testing
 
             // check with FireIncidentSubsystem if an event should occur now
-            incidentSubsystem.consumeEvent(currentSimTime);
+            //incidentSubsystem.consumeEvent(currentSimTime);
 
             time++; // Increment simulation time
         }

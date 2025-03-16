@@ -6,11 +6,12 @@ import java.net.*;
  * @version 2.0 - Added state machine support
  * @author Nick Fuda
  */
-public class DroneSubsystem implements Runnable {
+public class DroneSubsystem {
     private String name;
-    private final Scheduler scheduler;
+    private final int schedulerPort = 6001 ;
     private final ArrayList<Drone> droneList;
     FireEvent current;
+    private int DroneSubsystemPort = 5000;
     private int index;
     private DatagramSocket subsystemSocket;
     private DatagramPacket subsystemPacket;
@@ -18,37 +19,34 @@ public class DroneSubsystem implements Runnable {
     /**
      * Constructor for the Drone Subsystem
      * @param name      name of the drone
-     * @param scheduler scheduler
      */
-    public DroneSubsystem(String name, Scheduler scheduler) {
+    public DroneSubsystem(String name) {
         this.name = name;
-        this.scheduler = scheduler;
+
         //droneState state = droneState.IDLE; //Starting state is idle
         droneList = new ArrayList<>();
         current = null;
         index = 0;
         try {
-            subsystemSocket = new DatagramSocket(5000);
-        }
-        catch (SocketException se) {
+            subsystemSocket = new DatagramSocket(DroneSubsystemPort);
+        } catch (SocketException se) {
             se.printStackTrace();
         }
-
-        initializeDrones();
     }
 
     /**
-     * Initializes subsystem to have 3 drones
-     * assume only 1 for iteration 2
+     * Initializes Drones and adds them to the list that is maintained by the subsystem
      */
     public void initializeDrones(){
-        Drone drone1 = new Drone("Drone 1", 5001);
-        Drone drone2 = new Drone("Drone 2", 5002);
-        Drone drone3 = new Drone("Drone 3", 5003);
+        Drone drone1 = new Drone("Drone 1", this, 5001);
+        Drone drone2 = new Drone("Drone 2", this,5002);
+        Drone drone3 = new Drone("Drone 3", this, 5003);
         droneList.add(drone1);
         droneList.add(drone2);
         droneList.add(drone3);
+
     }
+
 
     public void manageDrones() {
         while (true) {
@@ -138,20 +136,28 @@ public class DroneSubsystem implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        while (!scheduler.getShutdownDrones()) {
-            manageDrones();
-        }
-        System.out.println("Shutting down Drone Subsystem");
+
+
+    public static void main(String[] args) {
+        DroneSubsystem droneSub = new DroneSubsystem("Drone Subsystem");
+        Thread drone1;
+        Thread drone2;
+        Thread drone3;
+        droneSub.manageDrones();
     }
 
 
     /**
      * Helper Class Drone represents the drones that exist in the Drone Subsystem
      */
-    private class Drone{
+    private class Drone implements Runnable{
         private String DroneID;
+
+        @Override
+        public void run() {
+            idle();
+        }
+
         private enum droneState{
             IDLE, //Drone is not performing any actions
             ENROUTE, //Drone is approaching an incident
@@ -171,7 +177,7 @@ public class DroneSubsystem implements Runnable {
          * Constructor for drones
          * @param ID the name of the drone
          */
-        public Drone(String ID, int socketNumber){
+        public Drone(String ID, DroneSubsystem ParentSystem, int socketNumber){
             DroneID = ID;
             state = droneState.IDLE;
             travelTime = 0.0;
@@ -180,6 +186,11 @@ public class DroneSubsystem implements Runnable {
             } catch (SocketException e) {}
         }
 
+        private void idle(){
+            while(true){
+                checkForInstruction();
+            }
+        }
         private void checkForInstruction(){
             //Create buffer and receiving packet
             byte[] receiveData = new byte[100];
@@ -232,7 +243,6 @@ public class DroneSubsystem implements Runnable {
          */
         private void fightFire() throws InterruptedException {
             enRoute(); //State 2 from idle, carries into next states, beginning the state machine
-            scheduler.notifyCompletion(currentEvent);
             returnDroneToList(this);
         }
 

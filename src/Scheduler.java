@@ -9,7 +9,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class Scheduler implements Runnable {
+public class Scheduler {
     private FireEvent current;
     private boolean shutdownFIS;
     private boolean shutdownDrones;
@@ -22,7 +22,7 @@ public class Scheduler implements Runnable {
     /**
      * Constructor for scheduler class
      */
-    public Scheduler(Simulation simulation){
+    public Scheduler(){
         eventList = new ArrayList<>();
         current = null;
         shutdownFIS = false;
@@ -35,6 +35,15 @@ public class Scheduler implements Runnable {
             se.printStackTrace();
         }
     }
+
+    public void initializeSendReceiveThreads(){
+        Thread sendThread = new Thread(new SchedulerSend(this));
+        Thread recThread = new Thread(new SchedulerReceive(this));
+        sendThread.start();
+        recThread.start();
+
+    }
+
 
     /**
      * Used by FireIncidentSystem to signal to scheduler that it has completed its data cycle.
@@ -164,35 +173,60 @@ public class Scheduler implements Runnable {
         notifyAll();
     }
 
-    @Override
-    public void run() {
-        while(!shutdownFIS && !Thread.currentThread().isInterrupted()){
-            try {
-                receiveMessage();
-                //sendToDrone();
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+    public static void main(String[] args) {
+        Scheduler scheduler = new Scheduler();
+        scheduler.initializeSendReceiveThreads();
+
+        while(true){}
+    }
+
+
+//    @Override
+//    public void run() {
+//        while(!shutdownFIS && !Thread.currentThread().isInterrupted()){
+//            try {
+//                receiveMessage();
+//                //sendToDrone();
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//                break;
+//            }
+//        }
+//        //prepare to shutdown after last data read from csv
+//        shutdown();
+//        System.out.println("Shutting down Scheduler");
+//    }
+
+    private class SchedulerReceive implements Runnable{
+        Scheduler s;
+        public SchedulerReceive(Scheduler scheduler){
+            this.s = scheduler;
+        }
+
+        @Override
+        public void run() {
+            while(true){
+              s.receiveMessage();
             }
         }
-        //prepare to shutdown after last data read from csv
-        shutdown();
-        System.out.println("Shutting down Scheduler");
     }
 
-    public static void main(String[] args) {
-        Simulation simulation = new Simulation(1);
-        Scheduler scheduler = new Scheduler(simulation);
+    private class SchedulerSend implements Runnable{
 
-        Thread simulationThread = new Thread(simulation);
-        Thread schedulerThread = new Thread(scheduler);
-        Thread fis = new Thread( new FireIncidentSubsystem(scheduler, simulation));
-        Thread drone1 = new Thread(new DroneSubsystem("Drone 1", scheduler));
+        Scheduler s;
 
-        simulationThread.start();
-        fis.start();
-        schedulerThread.start();
-        drone1.start();
+        public SchedulerSend(Scheduler scheduler){
+            this.s = scheduler;
+        }
+
+        @Override
+        public void run() {
+            while(true) {
+                s.sendToDrone();
+            }
+        }
     }
+
+
 }

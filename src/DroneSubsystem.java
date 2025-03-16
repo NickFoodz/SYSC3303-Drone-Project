@@ -132,8 +132,6 @@ public class DroneSubsystem {
 
     }
 
-
-
     /**
      * Returns the list of drones
      *
@@ -169,10 +167,10 @@ public class DroneSubsystem {
     /**
      * Helper Class Drone represents the drones that exist in the Drone Subsystem
      */
-    private class Drone implements Runnable {
+    public class Drone implements Runnable {
         private String DroneID;
 
-        private enum droneState {
+        public enum droneState {
             IDLE {
                 @Override
                 public String toString() {
@@ -429,5 +427,3 @@ public class DroneSubsystem {
         }
     }
 }
-
-

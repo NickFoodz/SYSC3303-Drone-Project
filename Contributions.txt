@@ -49,6 +49,7 @@ Nick Fuda
 - Each class updated to UDP
 - Some adjustments to the methods to run async
 - Multithreading for drones and scheduler ports
+- Documentation
 
 Hanyoung Chung (John)
 - Code review, debugging, test classes

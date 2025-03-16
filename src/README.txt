@@ -82,7 +82,7 @@ Instructions:
   - Replace the assignment to the field eventFilePath in FireIncidentSubsystem.java to the filepath of the
   csv file you wish to simulate.
 
-  - Scheduler contains the main method required to run the simulation. Run this and view the console log
+  - Run the processes in this order: Drone Subsystem, Scheduler, Fire Incident Subsystem
 
   - If performing correctly, the console log will show each thread acting and printing a description of the
-  current tasks as it runs.
+  current tasks as it runs. Each process will print its own log of its process

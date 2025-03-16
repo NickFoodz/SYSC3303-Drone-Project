@@ -162,12 +162,6 @@ public class Scheduler {
      */
     public void notifyAcceptance(FireEvent event){
         System.out.println("Event being handled: " + event);
-        eventList.remove(event);
-        if(!eventList.isEmpty()){
-            current = eventList.getFirst();
-        } else {
-            current = null;
-        }
     }
 
     /**
@@ -224,6 +218,8 @@ public class Scheduler {
                 };
                 try {
                     Thread.sleep(5000);
+                    System.out.println("Waiting to send task\n");
+
                 } catch (InterruptedException e) {}
             }
         }

@@ -392,7 +392,7 @@ public class DroneSubsystem {
         /**
          * Method that happens when the drone is in the RETURNING state, returns the drone to the IDLE state
          */
-        private void returnToBase() throws InterruptedException {
+        private synchronized void returnToBase() throws InterruptedException {
             state = droneState.RETURNING;
             log.add("RETURNING");
             //sendStatus();

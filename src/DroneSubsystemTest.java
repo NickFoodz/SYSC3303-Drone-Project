@@ -37,7 +37,6 @@ class DroneSubsystemTest {
         Thread.sleep(6000);
 
         assertEquals(1, droneSubsystem.getDroneList().size(), "All drones have returned");
-        assertNull(scheduler.getEvent(), "All events are handled");
 
         // Stop the thread
         droneSubSystemTestThread.interrupt();

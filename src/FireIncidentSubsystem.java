@@ -77,7 +77,7 @@ public class FireIncidentSubsystem {
         try {
             DatagramPacket outgoing = new DatagramPacket(outgoingEvent, eventInfo.length(), InetAddress.getLocalHost(), 6001);
             FISSocket.send(outgoing);
-            System.out.println("Fire Incident Subsystem Sent: " + eventInfo);
+            System.out.println("Fire Incident Subsystem Sent: " + eventInfo +"\n");
         } catch (IOException e) {
             System.out.println("Could not send event");
         }
@@ -87,6 +87,7 @@ public class FireIncidentSubsystem {
 
     public static void main(String[] args) {
         FireIncidentSubsystem fis = new FireIncidentSubsystem();
+        System.out.println("Fire Incident Subsystem Online\n");
         fis.getData();
         while(true){
         //exist (wait for shutdown signal)

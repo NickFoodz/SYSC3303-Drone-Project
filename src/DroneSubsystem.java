@@ -1,3 +1,4 @@
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.net.*;
@@ -12,9 +13,9 @@ public class DroneSubsystem {
     private final ArrayList<Drone> droneList;
     FireEvent current;
     private int DroneSubsystemPort = 5000;
+    private int DroneSubsystemSendPort = 5004;
     private int index;
-    private DatagramSocket subsystemSocket;
-    private DatagramPacket subsystemPacket;
+    private DatagramSocket subsystemSocket, droneSendSocket;
 
     /**
      * Constructor for the Drone Subsystem
@@ -29,6 +30,7 @@ public class DroneSubsystem {
         index = 0;
         try {
             subsystemSocket = new DatagramSocket(DroneSubsystemPort);
+            droneSendSocket = new DatagramSocket(DroneSubsystemSendPort);
         } catch (SocketException se) {
             se.printStackTrace();
         }
@@ -38,13 +40,23 @@ public class DroneSubsystem {
      * Initializes Drones and adds them to the list that is maintained by the subsystem
      */
     public void initializeDrones(){
+        //Create three drones
         Drone drone1 = new Drone("Drone 1", this, 5001);
         Drone drone2 = new Drone("Drone 2", this,5002);
         Drone drone3 = new Drone("Drone 3", this, 5003);
+
+        //Add drones to the List (drones at the base, idle)
         droneList.add(drone1);
         droneList.add(drone2);
         droneList.add(drone3);
 
+        //Start the threads
+        Thread d1 = new Thread(drone1);
+        d1.start();
+        Thread d2 = new Thread(drone2);
+        d2.start();
+        Thread d3 = new Thread(drone3);
+        d3.start();
     }
 
 
@@ -54,13 +66,25 @@ public class DroneSubsystem {
             byte[] receiveData = new byte[100];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-            //Message should be in form "ZONEID:SEVERITY"
-            //Wait for message
             try {
+                //Wait for message
                 subsystemSocket.receive(receivePacket);
                 String receiveString = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                System.out.println("Drone Subsystem received event from Scheduler: " + receiveString);
-            } catch (IOException e) {
+
+                //Convert into FireEvent
+                FireEvent newEvent;
+                String[] info = receiveString.split(",");
+                if (info.length == 4) {
+                    String time = info[0];
+                    int zoneID = Integer.parseInt(info[1]);
+                    String type = info[2];
+                    String severity = info[3];
+                    newEvent = new FireEvent(time, zoneID, type, severity);
+                    System.out.println("Drone Subsystem received event from Scheduler: " + newEvent);
+                    assignDrone(newEvent);
+                    newEvent = null;
+                }
+            } catch (IOException | InterruptedException e) {
             }
         }
     }
@@ -70,8 +94,8 @@ public class DroneSubsystem {
      * Assign a drone an event given by the scheduler, and remove from the list of available drones
      * @throws InterruptedException
      */
-    public void assignDrone() throws InterruptedException {
-        droneList.get(index).startEvent(current);
+    public void assignDrone(FireEvent newEvent) throws InterruptedException {
+        droneList.get(index).startEvent(newEvent);
         droneList.remove(index);
         index ++;
         //change to 2 if 3 drones
@@ -81,7 +105,11 @@ public class DroneSubsystem {
         }
     }
 
-    public ArrayList<DroneSubsystem.Drone> getDroneList() {
+    /**
+     * Returns the list of drones
+     * @return
+     */
+    public ArrayList<Drone> getDroneList() {
         return droneList;
     }
 
@@ -94,55 +122,11 @@ public class DroneSubsystem {
         droneList.add(drone);
     }
 
-    /**
-     * Receives tasks from scheduler and sends drones to deal with them
-     * @throws InterruptedException
-     * @throws RuntimeException
-     */
-    public void fightFire() throws InterruptedException, RuntimeException {
-        //buffer for data
-        byte[] data = new byte[100];
-        // get next event from the scheduler (replaces scheduler.getEvent())
-        subsystemPacket = new DatagramPacket(data, data.length);
-        try {
-            subsystemSocket.receive(subsystemPacket);
-            // most likely goes to current
-            String received = new String(subsystemPacket.getData(),0,subsystemPacket.getLength());
-            System.out.println(received);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        //If no drones available, wait
-        while(droneList.isEmpty()){
-            System.out.println("Waiting for drone to return");
-            try{
-            wait();} catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        //Otherwise, assign a drone to the event or wait if the scheduler has no task
-        try {
-            if (current != null) {
-                assignDrone();
-            } else {
-                Thread.sleep(500); //Waits to try again
-            }
-        } catch (RuntimeException | InterruptedException e) {
-            System.out.println("DroneSubsystem thread interrupted, shutting down.");
-            Thread.currentThread().interrupt();
-        }
-    }
-
-
 
     public static void main(String[] args) {
         DroneSubsystem droneSub = new DroneSubsystem("Drone Subsystem");
-        Thread drone1;
-        Thread drone2;
-        Thread drone3;
+        droneSub.initializeDrones();
+        System.out.println("Drone Subsystem Online");
         droneSub.manageDrones();
     }
 
@@ -155,6 +139,7 @@ public class DroneSubsystem {
 
         @Override
         public void run() {
+            System.out.println(DroneID + " online");
             idle();
         }
 
@@ -186,31 +171,36 @@ public class DroneSubsystem {
             } catch (SocketException e) {}
         }
 
+        /**
+         * Drone is idle initially and when awaiting a task
+         */
         private void idle(){
             while(true){
-                checkForInstruction();
+               //Wait for event
             }
         }
-        private void checkForInstruction(){
-            //Create buffer and receiving packet
-            byte[] receiveData = new byte[100];
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-            //Message should be in form "ZONEID:SEVERITY"
-            //Wait for message
+        /**
+         * Drone accepts a task from the scheduler when able
+         */
+        private void acceptTask(){
             try {
-                droneSocket.receive(receivePacket);
-                String receiveString = new String(receivePacket.getData(),0,receivePacket.getLength());
-                System.out.println("Drone "+ this.DroneID +" received from Scheduler: "+ receiveString);
-            } catch (IOException e) {}
-
+            byte[] acceptancemsg = new byte[100];
+            String accept = "ACCEPT";
+            acceptancemsg= accept.getBytes();
+            DatagramPacket acceptPacket = new DatagramPacket(acceptancemsg, 6, InetAddress.getLocalHost(), 6002);
+            this.droneSocket.send(acceptPacket);
+            } catch (IOException e) {
+            }
         }
+
         /**
          * Drone is dispatched to event and performs firefighting
          * @param e the event
          * @throws InterruptedException
          */
         public void startEvent(FireEvent e) throws InterruptedException {
+            acceptTask();
             this.currentEvent = e;
             this.fightFire();
         }
@@ -265,7 +255,7 @@ public class DroneSubsystem {
          */
         private void deployAgent()throws InterruptedException {
             state = droneState.DEPLOYINGAGENT; //Change state
-            System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() +", deploying agent");
+            System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() +", deploying "+ putOutFire(currentEvent)+" of agent");
             int waterToUse = putOutFire(currentEvent);
             Thread.sleep(500);
             //Go to next state

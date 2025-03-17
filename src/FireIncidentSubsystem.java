@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class FireIncidentSubsystem {
-    private final String eventFilePath = "SYSC3303-Drone-Project-master/Sample_event_file.csv"; //File path to the .csv
+    private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
     List<FireEvent> allEvents;
     private static Simulation simulation;
@@ -89,6 +89,11 @@ public class FireIncidentSubsystem {
 
     }
 
+    /**
+     * Checks if theres an event to be send out at the current simulation time
+     * Then removes it from the master AllEvents list and sends it out to the scheduler.
+     * @param currentSimTime
+     */
     public synchronized void consumeEvent(LocalTime currentSimTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         while (!allEvents.isEmpty() && allEvents.get(0).getTime().equals(currentSimTime.format(formatter))) {

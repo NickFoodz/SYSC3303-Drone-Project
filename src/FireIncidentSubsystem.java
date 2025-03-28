@@ -59,6 +59,17 @@ public class FireIncidentSubsystem {
                     //adds all events to a master AllEvents List
                     allEvents.add(event);
                 }
+                if(info.length == 5){
+                    String time = info[0];
+                    int zoneID = Integer.parseInt(info[1]);
+                    String type = info[2];
+                    String severity = info[3];
+                    String fault = info[4];
+                    FireEvent event = new FireEvent(time, zoneID, type, severity, fault);
+
+                    //adds all events to a master AllEvents List
+                    allEvents.add(event);
+                }
             }
 
             //sorts all events by timestamp so we can send them out to the simulation in order.
@@ -122,7 +133,7 @@ public class FireIncidentSubsystem {
         Thread simulationThread = new Thread(simulation);
         simulationThread.start();
         while(true){
-        //exist (wait for shutdown signal)
+            //exist (wait for shutdown signal)
         }
     }
 }

@@ -8,6 +8,7 @@ public class FireEvent {
     private int zoneID;
     private String type;
     private String severity;
+    private String fault;
 
     /**
      * Constructor for FireEvent, usually information comes from the FireIncidentSubsystem
@@ -21,6 +22,15 @@ public class FireEvent {
         this.zoneID = zoneID;
         this.type = type;
         this.severity=severity;
+        this.fault = null;
+    }
+
+    public FireEvent(String time, int zoneID, String type, String severity, String fault) {
+        this.time = time;
+        this.zoneID = zoneID;
+        this.type = type;
+        this.severity=severity;
+        this.fault = fault;
     }
 
     /**
@@ -42,6 +52,12 @@ public class FireEvent {
     public int getZoneID() {return zoneID;}
 
     /**
+     * Getter for the fault
+     * @return fault as an int
+     */
+    public String getFault() {return fault;}
+
+    /**
      * Getter for the type of event
      * @return event type as a string
      */
@@ -52,7 +68,7 @@ public class FireEvent {
      * @return a string in the form Time:ZoneID:Type:Severity
      */
     public String summarizeEvent(){
-        return new String(this.getTime()+","+ this.getZoneID()+","+ this.getType()+","+ this.getSeverity());
+        return new String(this.getTime()+","+ this.getZoneID()+","+ this.getType()+","+ this.getSeverity()+","+ this.getFault());
     }
 
     @Override

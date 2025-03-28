@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Scheduler {
     private FireEvent current;
-    private LinkedList<FireEvent> eventList = new LinkedList<>();
+    private LinkedList<FireEvent> eventList;
 
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
 
@@ -70,12 +70,13 @@ public class Scheduler {
             if(receivePacket.getPort() == 5999){
                 //Convert into FireEvent
                 String[] info = recMsg.split(",");
-                if (info.length == 4) {
+                if (info.length == 5) {
                     String time = info[0];
                     int zoneID = Integer.parseInt(info[1]);
                     String type = info[2];
                     String severity = info[3];
-                    FireEvent newEvent = new FireEvent(time, zoneID, type, severity);
+                    String fault = info[4];
+                    FireEvent newEvent = new FireEvent(time, zoneID, type, severity, fault);
 
                     //Print that the event was received with its info
                     System.out.println("Received: " + newEvent +" from Fire Incident Subsystem");
@@ -100,6 +101,27 @@ public class Scheduler {
             byte[] outData = new byte[100];
             String eventString = current.summarizeEvent();
             outData = eventString.getBytes();
+
+            //iter4 fault handling
+            String fault = current.getFault();
+            if (!fault.equals("null")) {
+                System.out.println("A Fault has been detected: " + fault);
+                switch (fault) {
+                    case "Drone Stuck":
+                        //Drone stuck recovery here
+
+                        break;
+                    case "Nozzle Jammed":
+                        //Nozzle Jammed recovery here
+
+                        break;
+                    case "Packet Loss/Corrupted Messages":
+                        //Packet loss/Corrupted Messages recovery here
+
+                        break;
+                }
+            }
+
 
             try {
                 System.out.println("Attempting to send Event to Drone");
@@ -191,7 +213,7 @@ public class Scheduler {
         @Override
         public void run() {
             while(true){
-              s.receiveMessage();
+                s.receiveMessage();
             }
         }
     }
@@ -212,10 +234,10 @@ public class Scheduler {
         public void run() {
             while(true) {
                 try{
-                s.sendToDrone();
+                    s.sendToDrone();
                 } catch (NoSuchElementException e){
                     System.out.println("No pending tasks to send\n");
-                };
+                }
                 try {
                     Thread.sleep(5000);
                     System.out.println("Waiting to send task\n");

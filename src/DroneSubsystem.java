@@ -86,12 +86,13 @@ public class DroneSubsystem {
                 //Convert into FireEvent
                 FireEvent newEvent;
                 String[] info = receiveString.split(",");
-                if (info.length == 4) {
+                if (info.length == 5) {
                     String time = info[0];
                     int zoneID = Integer.parseInt(info[1]);
                     String type = info[2];
                     String severity = info[3];
-                    newEvent = new FireEvent(time, zoneID, type, severity);
+                    String fault = info[4];
+                    newEvent = new FireEvent(time, zoneID, type, severity, fault);
                     System.out.println("\nDrone Subsystem received event from Scheduler: " + newEvent +"\n");
                     assignDrone(receiveString);
                     newEvent = null;
@@ -335,12 +336,13 @@ public class DroneSubsystem {
                 //Convert into FireEvent
                 FireEvent newEvent;
                 String[] info = receiveString.split(",");
-                if (info.length == 4) {
+                if (info.length == 5) {
                     String time = info[0];
                     int zoneID = Integer.parseInt(info[1]);
                     String type = info[2];
                     String severity = info[3];
-                    newEvent = new FireEvent(time, zoneID, type, severity);
+                    String fault = info[4];
+                    newEvent = new FireEvent(time, zoneID, type, severity, fault);
                     return newEvent;
                 }
             }catch(IOException e){}

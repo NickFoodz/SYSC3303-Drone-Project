@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Scheduler {
     private FireEvent current;
     private LinkedList<FireEvent> eventList;
-
+    public int mostRecentReceivedSocket = 0;
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
 
     /**
@@ -65,7 +65,7 @@ public class Scheduler {
             //Receive messages and convert to strings
             receiveSocket.receive(receivePacket);
             String recMsg = new String (receivePacket.getData(), 0, receivePacket.getLength());
-
+            mostRecentReceivedSocket = receivePacket.getPort();
             //If info is from FIS
             if(receivePacket.getPort() == 5999){
                 //Convert into FireEvent
@@ -86,8 +86,8 @@ public class Scheduler {
 
                 //Otherwise if from a drone print it directly to the terminal
             }else if(receivePacket.getPort() == 5001 || receivePacket.getPort() == 5002 || receivePacket.getPort() == 5003){
-                System.out.println("\nNew message from Drone: ");
-                System.out.print(recMsg + "\n");
+                System.out.println("\nNew message from Drone on port " + receivePacket.getPort());
+                //System.out.print(recMsg + "\n");
             }
         } catch (IOException e) { System.out.println("Error Scheduler Receiving");}
     }
@@ -132,6 +132,7 @@ public class Scheduler {
                 DatagramPacket reply = new DatagramPacket(acceptData, acceptData.length);
 
                 acceptSocket.receive(reply);
+                mostRecentReceivedSocket = reply.getPort();
                 String msg = new String(reply.getData(), 0, reply.getLength());
                 if(msg.equalsIgnoreCase("ACCEPT")){
                     notifyAcceptance(current);

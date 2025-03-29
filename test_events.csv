@@ -1,0 +1,3 @@
+time,zoneID,type,severity
+12:00:00,1,Forest,High
+12:05:00,2,Building,Low

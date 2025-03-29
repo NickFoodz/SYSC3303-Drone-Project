@@ -78,6 +78,6 @@ public class FireEvent {
 
     @Override
     public String toString() {
-        return "[Time: " + time +", Zone: " + zoneID + ", Type: " + type + ", Severity: " + severity + "]";
+        return "[Time: " + time +", Zone: " + zoneID + ", Type: " + type + ", Severity: " + severity + ", Fault: " + fault + "]";
     }
 }

@@ -17,7 +17,6 @@ public class DroneSubsystem {
     private int DroneSubsystemSendPort = 5004;
     private int index;
     private DatagramSocket subsystemSocket, droneSendSocket;
-
     /**
      * Constructor for the Drone Subsystem
      *
@@ -209,9 +208,12 @@ public class DroneSubsystem {
 
         private droneState state;
         private int x, y; //coordinates of the drone's location
+        private int destX, destY; // destination of drone's location
         private final int speed = 60; // km/h
         private FireEvent currentEvent;
         private double travelTime;
+        private double slope;
+        private boolean dir; // for calculating coordinates: true is positive, false is negative
 
         //Socket to send updates to the Scheduler
         private DatagramSocket droneSocket;
@@ -369,10 +371,57 @@ public class DroneSubsystem {
             log.add("ENROUTE");
             sendStatus();
             System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
-            //travelTime = methodToCalculateTravelTime
-            Thread.sleep(500);
+            travelTime = methodToCalculateTravelTime();
+            while (x != destX && y != destY) {
+                int[] coords = calculateNewCoordinates();
+                x = coords[0];
+                y = coords[1];
+                Thread.sleep(500);
+            }
             //Go to next state
             deployAgent();
+        }
+
+        private double methodToCalculateTravelTime() {
+            double dist = Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2));
+            slope = (double) (destY - y) / (destX - x);
+            if (slope >= 0) {
+                if (destY > y && destX > x) {
+                    dir = true;
+                }
+                else {
+                    dir = false;
+                }
+            }
+            else {
+                if (destY < y && destX > x) {
+                    dir = true;
+                }
+                else {
+                    dir = false;
+                }
+            }
+            return Math.ceil(dist / speed);
+        }
+
+        private int[] calculateNewCoordinates() {
+            // check for overshooting
+            if (Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2)) >= speed) {
+                return new int[]{destX, destY};
+            }
+
+            double coordX = speed / Math.sqrt(1 + Math.pow(slope, 2));
+            double coordY = slope * speed / Math.sqrt(1 + Math.pow(slope, 2));
+            int[] coords = new int[2];
+            if (dir) { // check direction of drone
+                coords[0] = (int) (x + coordX);
+                coords[1] = (int) (y + coordY);
+            }
+            else {
+                coords[0] = (int) (x - coordX);
+                coords[1] = (int) (y - coordY);
+            }
+            return coords;
         }
 
         /**

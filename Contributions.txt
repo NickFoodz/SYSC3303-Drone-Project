@@ -57,3 +57,25 @@ Hanyoung Chung (John)
 
 Bryson Kushner:
 - Class UML
+
+Iteration 4:
+Thomas Imbert
+- Simulation code and integration
+- Fault handling
+- State Machine Diagrams
+
+Elton Kong
+- Sequence diagram
+- Implementing drone location and tracking methods
+- Code Review and documentation review
+
+Nick Fuda
+- Code review, debugging, test cases
+- Documentation
+
+Hanyoung Chung (John)
+- Code review, debugging, test classes and test cases
+
+Bryson Kushner:
+- Fault Handling
+- Class UML

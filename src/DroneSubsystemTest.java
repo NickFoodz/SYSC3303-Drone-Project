@@ -1,6 +1,11 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DroneSubsystemTest {
@@ -32,4 +37,16 @@ class DroneSubsystemTest {
         assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
         droneSubsystem.TESTING_closeSockets();
     }
+
+    @Test
+    void testDroneSendStatus() throws IOException {
+        droneSubsystem.initializeDrones();
+        DatagramSocket testReceive = new DatagramSocket(6001);
+        droneSubsystem.getDroneList().get(0).sendStatus(); //Drone on port 5002
+        byte[] acceptData = new byte[100];
+        DatagramPacket packetFromDrone = new DatagramPacket(acceptData, acceptData.length);
+        testReceive.receive(packetFromDrone);
+        assertEquals(packetFromDrone.getPort(), 5002 );
+    }
+
 }

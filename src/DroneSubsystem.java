@@ -268,7 +268,7 @@ public class DroneSubsystem {
         /**
          * Sends the status of the drone to the scheduler (not fully implemented, having issues with multithreading
          */
-        private void sendStatus() {
+        public void sendStatus() {
             //Set status
             String status = new String("State of " + DroneID + ": " + this.state.toString());
 //            String status = "Event complete: " + currentEvent.toString();

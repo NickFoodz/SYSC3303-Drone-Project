@@ -36,6 +36,7 @@ class SchedulerTest {
         drone3.send(testPacketSend);
         scheduler.receiveMessage();
         assertEquals(scheduler.mostRecentReceivedSocket, 5003);
+        scheduler.TESTING_closeSockets();
     }
 
     @Test

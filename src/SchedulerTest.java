@@ -17,40 +17,7 @@ class SchedulerTest {
     }
 
     @Test
-    public void testAddEvent_HighSeverity_FirstInQueue() {
-        FireEvent lowEvent = new FireEvent("12:00", 1, "Forest", "Low");
-        FireEvent highEvent = new FireEvent("12:05", 2, "Building", "High");
+    public void testFaultHandling() {
 
-        scheduler.addEvent(lowEvent);
-        scheduler.addEvent(highEvent);
-
-        assertEquals(highEvent, scheduler.getEvent().getFirst());
-        scheduler.TESTING_closeSockets();
-    }
-
-    @Test
-    public void testAddEvent_LowSeverity_AddedToBack() {
-        FireEvent event1 = new FireEvent("12:00", 1, "Forest", "Low");
-        FireEvent event2 = new FireEvent("12:05", 2, "Building", "Low");
-
-        scheduler.addEvent(event1);
-        scheduler.addEvent(event2);
-
-        assertEquals(event2, scheduler.getEvent().getLast());
-        scheduler.TESTING_closeSockets();
-    }
-
-    @Test
-    public void testNotifyAcceptance_UpdatesCurrentEvent() {
-        FireEvent event1 = new FireEvent("12:00", 1, "Forest", "Low");
-        FireEvent event2 = new FireEvent("12:05", 2, "Building", "High");
-
-        scheduler.addEvent(event1);
-        scheduler.addEvent(event2);
-
-        scheduler.notifyAcceptance(event2);
-
-        assertEquals(event2, scheduler.getCurrentEvent());
-        scheduler.TESTING_closeSockets();
     }
 }

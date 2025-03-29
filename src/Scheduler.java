@@ -87,7 +87,7 @@ public class Scheduler {
                 //Otherwise if from a drone print it directly to the terminal
             }else if(receivePacket.getPort() == 5001 || receivePacket.getPort() == 5002 || receivePacket.getPort() == 5003){
                 System.out.println("\nNew message from Drone on port " + receivePacket.getPort());
-                //System.out.print(recMsg + "\n");
+                System.out.print(recMsg + "\n");
             }
         } catch (IOException e) { System.out.println("Error Scheduler Receiving");}
     }

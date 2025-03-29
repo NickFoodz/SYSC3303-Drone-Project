@@ -19,11 +19,14 @@ class SchedulerTest {
     @Test
     public void testIncomingMessages() throws IOException, InterruptedException {
         DatagramSocket drone1, drone2, drone3;
+        //Ports that drones use
         drone1 = new DatagramSocket(5001);
         drone2 = new DatagramSocket(5002);
         drone3 = new DatagramSocket(5003);
         byte[] buffer = new byte[100];
-        DatagramPacket testPacketSend = new DatagramPacket(buffer, 5, InetAddress.getLocalHost(), 6001);
+        String msg = new String("This is a test for scheduler port reception");
+        buffer = msg.getBytes();
+        DatagramPacket testPacketSend = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), 6001);
         drone1.send(testPacketSend);
         scheduler.receiveMessage();
         assertEquals(scheduler.mostRecentReceivedSocket,5001);

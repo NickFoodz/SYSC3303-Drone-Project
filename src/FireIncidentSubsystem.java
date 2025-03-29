@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class FireIncidentSubsystem {
-    private final String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
+    private String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
     List<FireEvent> allEvents;
     private static Simulation simulation;
@@ -25,6 +25,21 @@ public class FireIncidentSubsystem {
      *
      */
     public FireIncidentSubsystem() {
+        EOF = false;
+        allEvents = new ArrayList<>();
+        simulation = new Simulation(1, this);
+        try {
+            FISSocket = new DatagramSocket(5999);
+        } catch (SocketException e) {}
+
+    }
+
+    /**
+     * Constructor for adding your own test file
+     *
+     */
+    public FireIncidentSubsystem(String inputFile) {
+        eventFilePath = inputFile;
         EOF = false;
         allEvents = new ArrayList<>();
         simulation = new Simulation(1, this);

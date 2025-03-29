@@ -138,11 +138,20 @@ public class Scheduler {
                 String msg = new String(reply.getData(), 0, reply.getLength());
                 if(msg.equalsIgnoreCase("ACCEPT")){
                     notifyAcceptance(current);
+                    //Acknowledge acceptance and remove task from list
+                    System.out.println("Drone accepted task, delegating next\n");
+                    eventList.remove(0);
+                    current = eventList.getFirst();
                 }
-                //Acknowledge acceptance and remove task from list
-                System.out.println("Drone accepted task, delegating next\n");
-                eventList.remove(0);
-                current = eventList.getFirst();
+                if(msg.equalsIgnoreCase("REJECT")){
+                    current.clearFault();
+                    notifyAcceptance(current); //Maybe remove? or at least change name. Gonna leave in for niceness in console
+                    System.out.println("Drone did not accept task\n");
+                    current = eventList.getFirst();
+
+                }
+
+
 
             } catch (IOException e) {}
         }

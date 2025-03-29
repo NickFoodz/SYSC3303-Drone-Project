@@ -58,6 +58,11 @@ public class FireEvent {
     public String getFault() {return fault;}
 
     /**
+     * Setter for the fault after it has been handled
+     */
+    public void clearFault() {fault = "null";}
+
+    /**
      * Getter for the type of event
      * @return event type as a string
      */

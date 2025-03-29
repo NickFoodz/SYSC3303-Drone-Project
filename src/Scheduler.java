@@ -108,16 +108,13 @@ public class Scheduler {
                 System.out.println("A Fault has been detected: " + fault);
                 switch (fault) {
                     case "Drone Stuck":
-                        //Drone stuck recovery here
-
+                        System.out.println("A Drone Stuck fault will be injected and handled to simulate a drone being stuck between zones mid-flight.");
                         break;
                     case "Nozzle Jammed":
-                        //Nozzle Jammed recovery here
-
+                        System.out.println("A Nozzle Jammed fault will be injected and handled to simulate the nozzle/bay doors being jammed.");
                         break;
                     case "Packet Loss/Corrupted Messages":
-                        //Packet loss/Corrupted Messages recovery here
-
+                        System.out.println("A Packet Loss/Corrupted Messages fault will be injected and handled.");
                         break;
                 }
             }

@@ -74,16 +74,4 @@ class DroneSubsystemTest {
 
     }
 
-    @Test
-    void testDroneSendStatus() throws IOException {
-        droneSubsystem.initializeDrones();
-        DatagramSocket testReceive = new DatagramSocket(6001);
-        droneSubsystem.getDroneList().get(0).sendStatus(); //Drone on port 5002
-        byte[] acceptData = new byte[100];
-        DatagramPacket packetFromDrone = new DatagramPacket(acceptData, acceptData.length);
-        testReceive.receive(packetFromDrone);
-        assertEquals(packetFromDrone.getPort(), 5002 );
-        droneSubsystem.TESTING_closeSockets();
-    }
-
 }

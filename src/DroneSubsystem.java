@@ -495,6 +495,7 @@ public class DroneSubsystem {
 
             } catch (DroneNozzleStuck d){
                 System.out.println(DroneID + "'s Nozzle is stuck. Sending back to base and disabling.");
+
                 //SEND BACK
                 returnToBase();
 
@@ -502,6 +503,9 @@ public class DroneSubsystem {
                 state = droneState.DISABLED;
                 log.add("DISABLED");
                 sendStatus();
+                //for(String n : log){
+                   // System.out.println(n);
+                //}
 
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
@@ -515,6 +519,7 @@ public class DroneSubsystem {
                 } catch (IOException e) {
 
                 }
+
             }
         }
 

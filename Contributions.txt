@@ -57,3 +57,23 @@ Hanyoung Chung (John)
 
 Bryson Kushner:
 - Class UML
+
+Iteration 4:
+Thomas Imbert
+- Fault injection and handling help
+- State diagram
+
+Elton Kong
+- Sequence diagram
+- Drone movement/coords calculation
+
+Nick Fuda
+- Drone movement/coords calculation
+- Code review, test classes
+
+Hanyoung Chung (John)
+- Code review, test classes
+
+Bryson Kushner:
+- Class UML
+- Fault handling

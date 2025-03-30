@@ -16,7 +16,7 @@ class DroneSubsystemTest {
         droneSubsystem.initializeDrones();
 
         assertEquals(3, droneSubsystem.getDroneList().size(), "all drones are initialized");
-        droneSubsystem.TESTING_closeSockets();
+        //droneSubsystem.TESTING_closeSockets();
     }
 
     @Test

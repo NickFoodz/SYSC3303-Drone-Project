@@ -16,6 +16,7 @@ public class Scheduler {
     private LinkedList<FireEvent> eventList;
     public int mostRecentReceivedSocket = 0;
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
+    public ArrayList<String> log;
 
     /**
      * Constructor for scheduler class
@@ -23,7 +24,7 @@ public class Scheduler {
     public Scheduler(){
         eventList = new LinkedList<>();
         current = null;
-
+        log = new ArrayList<>();
         //Set up the sockets
         try {
             sendSocket = new DatagramSocket(6000);
@@ -44,7 +45,6 @@ public class Scheduler {
         //Start the threads
         sendThread.start();
         recThread.start();
-
     }
 
     public void TESTING_closeSockets(){
@@ -109,12 +109,15 @@ public class Scheduler {
                 switch (fault) {
                     case "Drone Stuck":
                         System.out.println("A Drone Stuck fault will be injected and handled to simulate a drone being stuck between zones mid-flight.");
+                        log.add("Drone Stuck");
                         break;
                     case "Nozzle Jammed":
                         System.out.println("A Nozzle Jammed fault will be injected and handled to simulate the nozzle/bay doors being jammed.");
+                        log.add("Nozzle Jammed");
                         break;
                     case "Packet Loss/Corrupted Messages":
                         System.out.println("A Packet Loss/Corrupted Messages fault will be injected and handled.");
+                        log.add("Packet Loss/Corrupted Messages");
                         break;
                 }
             }
@@ -177,6 +180,7 @@ public class Scheduler {
     public LinkedList<FireEvent> getEvent() {
         return eventList;
     }
+
 
     /**
      * Returns the current event of the scheduler

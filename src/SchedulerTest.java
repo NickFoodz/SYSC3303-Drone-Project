@@ -37,10 +37,26 @@ class SchedulerTest {
         scheduler.receiveMessage();
         assertEquals(scheduler.mostRecentReceivedSocket, 5003);
         scheduler.TESTING_closeSockets();
+        drone1.close();
+        drone2.close();
+        drone3.close();
     }
 
     @Test
-    public void testFaultHandling() {
+    public void testFaultHandling() throws SocketException {
+        DatagramSocket drone1;
+        drone1 = new DatagramSocket(5000);
 
+        FireEvent faultyEvent1 = new FireEvent("13:00:05",3,"FIRE_DETECTED","Low", "Drone Stuck");
+        FireEvent faultyEvent2 = new FireEvent("14:00:05",3,"FIRE_DETECTED","Low", "Nozzle Jammed");
+        FireEvent faultyEvent3 = new FireEvent("15:00:05",3,"FIRE_DETECTED","Low", "Packet Loss/Corrupted Messages");
+
+        scheduler.addEvent(faultyEvent1);
+        scheduler.addEvent(faultyEvent2);
+        scheduler.addEvent(faultyEvent3);
+
+        assertEquals(scheduler.getEvent().getFault(), "Drone Stuck");
+        assertEquals(scheduler.log.get(1), "Nozzle Jammed");
+        assertEquals(scheduler.log.get(2), "Packet Loss/Corrupted Messages");
     }
 }

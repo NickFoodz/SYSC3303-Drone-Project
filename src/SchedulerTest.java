@@ -3,9 +3,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
-import java.net.DatagramSocket;
-import java.net.DatagramPacket;
+import java.net.*;
 
 
 class SchedulerTest {
@@ -17,40 +17,48 @@ class SchedulerTest {
     }
 
     @Test
-    public void testAddEvent_HighSeverity_FirstInQueue() {
-        FireEvent lowEvent = new FireEvent("12:00", 1, "Forest", "Low");
-        FireEvent highEvent = new FireEvent("12:05", 2, "Building", "High");
-
-        scheduler.addEvent(lowEvent);
-        scheduler.addEvent(highEvent);
-
-        assertEquals(highEvent, scheduler.getEvent().getFirst());
+    public void testIncomingMessages() throws IOException, InterruptedException {
+        DatagramSocket drone1, drone2, drone3;
+        //Ports that drones use
+        drone1 = new DatagramSocket(5001);
+        drone2 = new DatagramSocket(5002);
+        drone3 = new DatagramSocket(5003);
+        byte[] buffer = new byte[100];
+        String msg = new String("This is a test for scheduler port reception");
+        buffer = msg.getBytes();
+        DatagramPacket testPacketSend = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), 6001);
+        drone1.send(testPacketSend);
+        scheduler.receiveMessage();
+        assertEquals(scheduler.mostRecentReceivedSocket,5001);
+        drone2.send(testPacketSend);
+        scheduler.receiveMessage();
+        assertEquals(scheduler.mostRecentReceivedSocket, 5002);
+        drone3.send(testPacketSend);
+        scheduler.receiveMessage();
+        assertEquals(scheduler.mostRecentReceivedSocket, 5003);
         scheduler.TESTING_closeSockets();
+        drone1.close();
+        drone2.close();
+        drone3.close();
     }
 
     @Test
-    public void testAddEvent_LowSeverity_AddedToBack() {
-        FireEvent event1 = new FireEvent("12:00", 1, "Forest", "Low");
-        FireEvent event2 = new FireEvent("12:05", 2, "Building", "Low");
+    public void testFaultHandling() throws SocketException {
+        DatagramSocket drone1;
+        drone1 = new DatagramSocket(5000);
 
-        scheduler.addEvent(event1);
-        scheduler.addEvent(event2);
+        FireEvent faultyEvent1 = new FireEvent("13:00:05",3,"FIRE_DETECTED","Low", "Drone Stuck");
+        FireEvent faultyEvent2 = new FireEvent("14:00:05",3,"FIRE_DETECTED","Low", "Nozzle Jammed");
+        FireEvent faultyEvent3 = new FireEvent("15:00:05",3,"FIRE_DETECTED","Low", "Packet Loss/Corrupted Messages");
 
-        assertEquals(event2, scheduler.getEvent().getLast());
+        scheduler.addEvent(faultyEvent1);
+        scheduler.addEvent(faultyEvent2);
+        scheduler.addEvent(faultyEvent3);
+
+        assertEquals(scheduler.getEvent().get(0).getFault(), "Drone Stuck");
+        assertEquals(scheduler.getEvent().get(1).getFault(), "Nozzle Jammed");
+        assertEquals(scheduler.getEvent().get(2).getFault(), "Packet Loss/Corrupted Messages");
         scheduler.TESTING_closeSockets();
-    }
-
-    @Test
-    public void testNotifyAcceptance_UpdatesCurrentEvent() {
-        FireEvent event1 = new FireEvent("12:00", 1, "Forest", "Low");
-        FireEvent event2 = new FireEvent("12:05", 2, "Building", "High");
-
-        scheduler.addEvent(event1);
-        scheduler.addEvent(event2);
-
-        scheduler.notifyAcceptance(event2);
-
-        assertEquals(event2, scheduler.getCurrentEvent());
-        scheduler.TESTING_closeSockets();
+        drone1.close();
     }
 }

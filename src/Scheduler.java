@@ -14,8 +14,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Scheduler {
     private FireEvent current;
     private LinkedList<FireEvent> eventList;
-
+    public int mostRecentReceivedSocket = 0;
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
+    public ArrayList<String> log;
 
     /**
      * Constructor for scheduler class
@@ -23,7 +24,7 @@ public class Scheduler {
     public Scheduler(){
         eventList = new LinkedList<>();
         current = null;
-
+        log = new ArrayList<>();
         //Set up the sockets
         try {
             sendSocket = new DatagramSocket(6000);
@@ -44,7 +45,6 @@ public class Scheduler {
         //Start the threads
         sendThread.start();
         recThread.start();
-
     }
 
     public void TESTING_closeSockets(){
@@ -65,7 +65,7 @@ public class Scheduler {
             //Receive messages and convert to strings
             receiveSocket.receive(receivePacket);
             String recMsg = new String (receivePacket.getData(), 0, receivePacket.getLength());
-
+            mostRecentReceivedSocket = receivePacket.getPort();
             //If info is from FIS
             if(receivePacket.getPort() == 5999){
                 //Convert into FireEvent
@@ -86,7 +86,7 @@ public class Scheduler {
 
                 //Otherwise if from a drone print it directly to the terminal
             }else if(receivePacket.getPort() == 5001 || receivePacket.getPort() == 5002 || receivePacket.getPort() == 5003){
-                System.out.println("\nNew message from Drone: ");
+                System.out.println("\nNew message from Drone on port " + receivePacket.getPort());
                 System.out.print(recMsg + "\n");
             }
         } catch (IOException e) { System.out.println("Error Scheduler Receiving");}
@@ -109,12 +109,15 @@ public class Scheduler {
                 switch (fault) {
                     case "Drone Stuck":
                         System.out.println("A Drone Stuck fault will be injected and handled to simulate a drone being stuck between zones mid-flight.");
+                        log.add("Drone Stuck");
                         break;
                     case "Nozzle Jammed":
                         System.out.println("A Nozzle Jammed fault will be injected and handled to simulate the nozzle/bay doors being jammed.");
+                        log.add("Nozzle Jammed");
                         break;
                     case "Packet Loss/Corrupted Messages":
                         System.out.println("A Packet Loss/Corrupted Messages fault will be injected and handled.");
+                        log.add("Packet Loss/Corrupted Messages");
                         break;
                 }
             }
@@ -132,6 +135,7 @@ public class Scheduler {
                 DatagramPacket reply = new DatagramPacket(acceptData, acceptData.length);
 
                 acceptSocket.receive(reply);
+                mostRecentReceivedSocket = reply.getPort();
                 String msg = new String(reply.getData(), 0, reply.getLength());
                 if(msg.equalsIgnoreCase("ACCEPT")){
                     notifyAcceptance(current);
@@ -176,6 +180,7 @@ public class Scheduler {
     public LinkedList<FireEvent> getEvent() {
         return eventList;
     }
+
 
     /**
      * Returns the current event of the scheduler

@@ -1,6 +1,11 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DroneSubsystemTest {
@@ -11,17 +16,18 @@ class DroneSubsystemTest {
         droneSubsystem.initializeDrones();
 
         assertEquals(3, droneSubsystem.getDroneList().size(), "all drones are initialized");
-        droneSubsystem.TESTING_closeSockets();
+        //droneSubsystem.TESTING_closeSockets();
     }
 
     @Test
     void testDroneStateChange() throws InterruptedException {
         droneSubsystem.initializeDrones();
         DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);
+        DroneSubsystem.Drone drone2 = droneSubsystem.getDroneList().get(1);
 
         assertEquals(DroneSubsystem.Drone.droneState.IDLE, drone.getState(), "drone starts in state IDLE");
 
-        FireEvent fireEvent = new FireEvent("13:00:05",3,"FIRE_DETECTED","Low");
+        FireEvent fireEvent = new FireEvent("13:00:05",3,"FIRE_DETECTED","Low", "null");
 
         drone.startEvent(fireEvent);
 
@@ -30,6 +36,43 @@ class DroneSubsystemTest {
         assertEquals("DEPLOYINGAGENT", drone.getLog().get(2), "drone moves onto DEPLOYINGAGENT state");
         assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
         assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
+
+        //For state with fault
+        FireEvent faultEvent = new FireEvent("14:00:00", 2, "FIRE_DETECTED", "High", "Drone Stuck");
+
+        drone.startEvent(faultEvent);
+
+        assertEquals("IDLE", drone.getLog().get(0), "drone starts at IDLE state");
+        assertEquals("ENROUTE", drone.getLog().get(1), "drone moves onto ENROUTE state");
+        assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
+        assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
+
+        //For nozzle stuck
+        FireEvent faultEvent2 = new FireEvent("14:00:00", 2, "FIRE_DETECTED", "High", "Nozzle Jammed");
+
+        drone2.startEvent(faultEvent2);
+        assertEquals("IDLE", drone2.getLog().get(0), "drone starts at IDLE state");
+        assertEquals("ENROUTE", drone2.getLog().get(1), "drone moves onto ENROUTE state");
+        assertEquals("DEPLOYINGAGENT", drone2.getLog().get(2), "drone moves onto DEPLOYINGAGENT state");
+        assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
+        assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
+        assertEquals("DISABLED", drone2.getLog().get(5), "drone moves onto DISABLED state");
+
+
+
         droneSubsystem.TESTING_closeSockets();
     }
+
+    @Test
+    void testDroneSendStatus() throws IOException {
+        droneSubsystem.initializeDrones();
+        DatagramSocket testReceive = new DatagramSocket(6001);
+        droneSubsystem.getDroneList().get(0).sendStatus(); //Drone on port 5002
+        byte[] acceptData = new byte[100];
+        DatagramPacket packetFromDrone = new DatagramPacket(acceptData, acceptData.length);
+        testReceive.receive(packetFromDrone);
+        assertEquals(packetFromDrone.getPort(), 5002 );
+        droneSubsystem.TESTING_closeSockets();
+    }
+
 }

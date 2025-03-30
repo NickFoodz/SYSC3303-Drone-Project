@@ -16,6 +16,7 @@ public class DroneSubsystem {
     private int DroneSubsystemSendPort = 5004;
     private int index;
     private DatagramSocket subsystemSocket, droneSendSocket;
+
     /**
      * Constructor for the Drone Subsystem
      *
@@ -268,7 +269,7 @@ public class DroneSubsystem {
         /**
          * Sends the status of the drone to the scheduler (not fully implemented, having issues with multithreading
          */
-        private void sendStatus() {
+        public void sendStatus() {
             //Set status
             String status = new String("State of " + DroneID + ": " + this.state.toString());
 //            String status = "Event complete: " + currentEvent.toString();
@@ -495,6 +496,7 @@ public class DroneSubsystem {
 
             } catch (DroneNozzleStuck d){
                 System.out.println(DroneID + "'s Nozzle is stuck. Sending back to base and disabling.");
+
                 //SEND BACK
                 returnToBase();
 
@@ -502,6 +504,9 @@ public class DroneSubsystem {
                 state = droneState.DISABLED;
                 log.add("DISABLED");
                 sendStatus();
+                //for(String n : log){
+                   // System.out.println(n);
+                //}
 
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
@@ -515,6 +520,7 @@ public class DroneSubsystem {
                 } catch (IOException e) {
 
                 }
+
             }
         }
 

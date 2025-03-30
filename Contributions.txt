@@ -60,20 +60,22 @@ Bryson Kushner:
 
 Iteration 4:
 Thomas Imbert
-- Fault injection and handling help
-- State diagram
+- Simulation code and integration
+- Fault handling
+- State Machine Diagrams
 
 Elton Kong
 - Sequence diagram
-- Drone movement/coords calculation
+- Implementing drone location and tracking methods
+- Code Review and documentation review
 
 Nick Fuda
-- Drone movement/coords calculation
-- Code review, test classes
+- Code review, debugging, test cases
+- Documentation
 
 Hanyoung Chung (John)
-- Code review, test classes
+- Code review, debugging, test classes and test cases
 
 Bryson Kushner:
+- Fault Handling
 - Class UML
-- Fault handling

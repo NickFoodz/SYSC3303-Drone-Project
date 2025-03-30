@@ -1,22 +1,32 @@
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.SocketException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DroneSubsystemTest {
-    private DroneSubsystem droneSubsystem = new DroneSubsystem("testDroneSubsystem");
+    DroneSubsystem droneSubsystem;
+    @BeforeEach
+    void setUp() {
+        droneSubsystem = new DroneSubsystem("testDroneSubsystem");
+    }
+
+    @AfterEach
+    void takeDown() throws InterruptedException {
+        droneSubsystem.TESTING_closeSockets();
+        Thread.sleep(100);
+    }
 
     @Test
     void testInitializeDrones() {
         droneSubsystem.initializeDrones();
 
         assertEquals(3, droneSubsystem.getDroneList().size(), "all drones are initialized");
-        //droneSubsystem.TESTING_closeSockets();
+//        droneSubsystem.TESTING_closeSockets();
     }
 
     @Test
@@ -60,7 +70,8 @@ class DroneSubsystemTest {
 
 
 
-        droneSubsystem.TESTING_closeSockets();
+//        droneSubsystem.TESTING_closeSockets();
+
     }
 
     @Test

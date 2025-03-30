@@ -55,8 +55,10 @@ class SchedulerTest {
         scheduler.addEvent(faultyEvent2);
         scheduler.addEvent(faultyEvent3);
 
-        assertEquals(scheduler.getEvent().getFault(), "Drone Stuck");
-        assertEquals(scheduler.log.get(1), "Nozzle Jammed");
-        assertEquals(scheduler.log.get(2), "Packet Loss/Corrupted Messages");
+        assertEquals(scheduler.getEvent().get(0).getFault(), "Drone Stuck");
+        assertEquals(scheduler.getEvent().get(1).getFault(), "Nozzle Jammed");
+        assertEquals(scheduler.getEvent().get(2).getFault(), "Packet Loss/Corrupted Messages");
+        scheduler.TESTING_closeSockets();
+        drone1.close();
     }
 }

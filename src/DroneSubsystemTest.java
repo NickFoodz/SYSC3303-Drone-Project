@@ -23,6 +23,7 @@ class DroneSubsystemTest {
     void testDroneStateChange() throws InterruptedException {
         droneSubsystem.initializeDrones();
         DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);
+        DroneSubsystem.Drone drone2 = droneSubsystem.getDroneList().get(1);
 
         assertEquals(DroneSubsystem.Drone.droneState.IDLE, drone.getState(), "drone starts in state IDLE");
 
@@ -45,6 +46,19 @@ class DroneSubsystemTest {
         assertEquals("ENROUTE", drone.getLog().get(1), "drone moves onto ENROUTE state");
         assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
         assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
+
+        //For nozzle stuck
+        FireEvent faultEvent2 = new FireEvent("14:00:00", 2, "FIRE_DETECTED", "High", "Nozzle Jammed");
+
+        drone2.startEvent(faultEvent2);
+        assertEquals("IDLE", drone2.getLog().get(0), "drone starts at IDLE state");
+        assertEquals("ENROUTE", drone2.getLog().get(1), "drone moves onto ENROUTE state");
+        assertEquals("DEPLOYINGAGENT", drone2.getLog().get(2), "drone moves onto DEPLOYINGAGENT state");
+        assertEquals("RETURNING", drone.getLog().get(3), "drone moves onto RETURNING state");
+        assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
+        assertEquals("DISABLED", drone2.getLog().get(5), "drone moves onto DISABLED state");
+
+
 
         droneSubsystem.TESTING_closeSockets();
     }

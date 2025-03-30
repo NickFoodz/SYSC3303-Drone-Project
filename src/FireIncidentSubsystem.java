@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class FireIncidentSubsystem {
-    private String eventFilePath = "Sample_event_file.csv"; //File path to the .csv
+    private String eventFilePath = "SYSC3303-Drone-Project-master/Sample_event_file.csv"; //File path to the .csv
     boolean EOF; //end of file reached
     List<FireEvent> allEvents;
     private static Simulation simulation;

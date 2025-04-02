@@ -139,9 +139,10 @@ public class DroneSubsystem {
      * @throws InterruptedException
      */
     public void assignDrone(String eventInfo) throws InterruptedException {
-        if(droneList.get(index).state == Drone.droneState.DISABLED)
-        while(droneList.get(index).state == Drone.droneState.DISABLED){
-            index++;
+        if(droneList.get(index).state == Drone.droneState.DISABLED) {
+            while (droneList.get(index).state == Drone.droneState.DISABLED) {
+                index++;
+            }
         }
         int port = index + 5001;
         droneList.remove(index);

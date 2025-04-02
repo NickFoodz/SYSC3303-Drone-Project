@@ -16,6 +16,7 @@ public class DroneSubsystem {
     private int DroneSubsystemSendPort = 5004;
     private int index;
     private DatagramSocket subsystemSocket, droneSendSocket;
+    private int numberOfDrones = 3;
 
     /**
      * Constructor for the Drone Subsystem
@@ -49,23 +50,15 @@ public class DroneSubsystem {
      * Initializes Drones and adds them to the list that is maintained by the subsystem
      */
     public void initializeDrones() {
-        //Create three drones
-        Drone drone1 = new Drone("Drone 1", this, 5001);
-        Drone drone2 = new Drone("Drone 2", this, 5002);
-        Drone drone3 = new Drone("Drone 3", this, 5003);
-
-        //Add drones to the List (drones at the base, idle)
-        droneList.add(drone1);
-        droneList.add(drone2);
-        droneList.add(drone3);
-
-        //Start the threads
-        Thread d1 = new Thread(drone1);
-        d1.start();
-        Thread d2 = new Thread(drone2);
-        d2.start();
-        Thread d3 = new Thread(drone3);
-        d3.start();
+        for (int i = 0; i < numberOfDrones; i++){
+            //Create x drones
+            Drone drone = new Drone("Drone " + (i+1), this, (5000 + (i+1)));
+            //Add drones to the List (drones at the base, idle)
+            droneList.add(drone);
+            //Start the threads
+            Thread d = new Thread(drone);
+            d.start();
+        }
     }
 
     /**
@@ -139,27 +132,20 @@ public class DroneSubsystem {
      * @throws InterruptedException
      */
     public void assignDrone(String eventInfo) throws InterruptedException {
-        if(droneList.get(index).state == Drone.droneState.DISABLED){
-            while(droneList.get(index).state == Drone.droneState.DISABLED){
-                index++;
+        for (Drone drone : droneList) {
+            if (drone.state == Drone.droneState.IDLE) {
+                int port = 5000 + droneList.indexOf(drone) + 1;
+                try {
+                    byte[] buffer = eventInfo.getBytes();
+                    DatagramPacket fwdPacket = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), port);
+                    droneSendSocket.send(fwdPacket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return;
             }
         }
-        
-        int port = index + 5001;
-        droneList.remove(index);
-        index++;
-        //change to 2 if 3 drones
-        //Index is meant to cycle which drones get assigned which tasks
-        if (index % 2 == 0) {
-            index = 0;
-        }
-
-        byte[] buffer = new byte[100];
-        buffer = eventInfo.getBytes();
-        try {
-            DatagramPacket fwdPacket = new DatagramPacket(buffer, eventInfo.length(), InetAddress.getLocalHost(), port);
-            droneSendSocket.send(fwdPacket);} catch (IOException e) {}
-
+        System.out.println("Cant assign drone");
     }
 
     /**

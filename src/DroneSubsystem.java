@@ -7,6 +7,16 @@ import java.net.*;
 import java.util.List;
 
 /**
+ * TODO:
+ * drone agent tanks
+ * drone battery
+ * if another task comes into a drone and is closer, the drone will handle that task first.
+ *      -> will need to put a queue in each drone for this. Will probably require a scheduler redo :(
+ * GUI!!!
+ */
+
+
+/**
  * Class Drone Subsystem models a drone consulting the scheduler to check for events
  * @version 2.0 - Added state machine support
  * @author Nick Fuda

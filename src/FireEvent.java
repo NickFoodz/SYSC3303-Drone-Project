@@ -9,6 +9,7 @@ public class FireEvent {
     private String type;
     private String severity;
     private String fault;
+    private Zone zone;
 
     /**
      * Constructor for FireEvent, usually information comes from the FireIncidentSubsystem
@@ -17,13 +18,6 @@ public class FireEvent {
      * @param type type of event that occurred as a string
      * @param severity the severity as a string
      */
-    public FireEvent(String time, int zoneID, String type, String severity){
-        this.time = time;
-        this.zoneID = zoneID;
-        this.type = type;
-        this.severity=severity;
-        this.fault = null;
-    }
 
     public FireEvent(String time, int zoneID, String type, String severity, String fault) {
         this.time = time;
@@ -31,6 +25,15 @@ public class FireEvent {
         this.type = type;
         this.severity=severity;
         this.fault = fault;
+        this.zone = null;
+    }
+    public FireEvent(String time, int zoneID, String type, String severity, String fault, Zone zone) {
+        this.time = time;
+        this.zoneID = zoneID;
+        this.type = type;
+        this.severity=severity;
+        this.fault = fault;
+        this.zone = zone;
     }
 
     /**
@@ -58,6 +61,12 @@ public class FireEvent {
     public String getFault() {return fault;}
 
     /**
+     * Getter for the zone
+     * @return zone
+     */
+    public Zone getZone() {return zone;}
+
+    /**
      * Setter for the fault after it has been handled
      */
     public void clearFault() {fault = "null";}
@@ -78,6 +87,9 @@ public class FireEvent {
 
     @Override
     public String toString() {
+        if(zone != null){
+            return "[Time: " + time +", Zone: " + zoneID + ", Type: " + type + ", Severity: " + severity + ", Fault: " + fault + ", Zone: " + zone + "]";
+        }
         return "[Time: " + time +", Zone: " + zoneID + ", Type: " + type + ", Severity: " + severity + ", Fault: " + fault + "]";
     }
 }

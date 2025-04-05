@@ -4,12 +4,11 @@
  * @author Nick Fuda
  */
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
 
 public class Scheduler {
     private FireEvent current;
@@ -17,6 +16,7 @@ public class Scheduler {
     public int mostRecentReceivedSocket = 0;
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
     public ArrayList<String> log;
+    List<Zone> allZones;
 
     /**
      * Constructor for scheduler class
@@ -34,6 +34,7 @@ public class Scheduler {
             se.printStackTrace();
         }
     }
+
 
     /**
      * Initializes the threads to send and receive messages

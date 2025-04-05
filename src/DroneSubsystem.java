@@ -1,7 +1,11 @@
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.net.*;
+import java.util.List;
+
 /**
  * Class Drone Subsystem models a drone consulting the scheduler to check for events
  * @version 2.0 - Added state machine support
@@ -9,6 +13,7 @@ import java.net.*;
  */
 public class DroneSubsystem {
     private String name;
+    private String zoneFilePath = "Sample_zone_file.csv"; //File path to the .csv
     private final int schedulerPort = 6001;
     private final ArrayList<Drone> droneList;
     FireEvent current;
@@ -17,6 +22,7 @@ public class DroneSubsystem {
     private int index;
     private DatagramSocket subsystemSocket, droneSendSocket;
     private int numberOfDrones = 3;
+    private List<Zone> allZones;
 
     /**
      * Constructor for the Drone Subsystem
@@ -30,12 +36,48 @@ public class DroneSubsystem {
         droneList = new ArrayList<>();
         current = null;
         index = 0;
+        allZones = new ArrayList<>();
         try {
             subsystemSocket = new DatagramSocket(DroneSubsystemPort);
             droneSendSocket = new DatagramSocket(DroneSubsystemSendPort);
         } catch (SocketException se) {
             se.printStackTrace();
         }
+    }
+
+    public void readZones(){
+        //Try to read the csv
+        try (BufferedReader reader = new BufferedReader(new FileReader(zoneFilePath))) {
+            String line;
+            reader.readLine(); //First line is header
+
+            //While there is data on the lines, create a new fire event and add it to the scheduler
+            while ((line = reader.readLine()) != null) {
+                String[] info = line.split(",");
+                if (info.length == 3) {
+                    int zoneID = Integer.parseInt(info[0]);
+                    String[] zoneStart = info[1].replaceAll("[()]", "").split(";");;
+                    String[] zoneEnd = info[2].replaceAll("[()]", "").split(";");;
+
+                    Zone zone = new Zone(zoneID, Integer.parseInt(zoneStart[0]), Integer.parseInt(zoneStart[1]), Integer.parseInt(zoneEnd[0]), Integer.parseInt(zoneEnd[1]));
+
+                    allZones.add(zone);
+                }
+            }
+
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private Zone getZone(int id){
+        for (Zone z : allZones){
+            if(z.getZoneId() == id){
+                return z;
+            }
+        }
+        //should never reach if input files are correct
+        return null;
     }
 
     public void TESTING_closeSockets(){
@@ -52,7 +94,7 @@ public class DroneSubsystem {
     public void initializeDrones() {
         for (int i = 0; i < numberOfDrones; i++){
             //Create x drones
-            Drone drone = new Drone("Drone " + (i+1), this, (5000 + (i+1)));
+            Drone drone = new Drone("Drone " + (i+1), i+1, this, (5000 + (i+1)));
             //Add drones to the List (drones at the base, idle)
             droneList.add(drone);
             //Start the threads
@@ -85,13 +127,16 @@ public class DroneSubsystem {
                         String type = info[2];
                         String severity = info[3];
                         String fault = info[4];
-                        newEvent = new FireEvent(time, zoneID, type, severity, fault);
+                        Zone zone = getZone(zoneID);
+                        newEvent = new FireEvent(time, zoneID, type, severity, fault, zone);
                         System.out.println("\nDrone Subsystem received event from Scheduler: " + newEvent + "\n");
                         if (newEvent.getFault().equals("Packet Loss/Corrupted Messages")) {
                             throw new DroneNetworkFailure("Bad Event message..");
                         }
                         assignDrone(receiveString);
                     }
+
+
                 }  catch (DroneNetworkFailure d){
                     System.out.println("Bad Event Message... sending back not accepting");
                     //RE-ENTER THE EVENT TO BE PROCESSED
@@ -134,7 +179,8 @@ public class DroneSubsystem {
     public void assignDrone(String eventInfo) throws InterruptedException {
         for (Drone drone : droneList) {
             if (drone.state == Drone.droneState.IDLE) {
-                int port = 5000 + droneList.indexOf(drone) + 1;
+                int port = 5000 + drone.droneNum;
+                droneList.remove(drone);
                 try {
                     byte[] buffer = eventInfo.getBytes();
                     DatagramPacket fwdPacket = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), port);
@@ -167,6 +213,11 @@ public class DroneSubsystem {
         droneList.add(drone);
     }
 
+    public void removeDroneFromList(Drone drone) {
+        //When a drone returns it adds itself back to the list
+        droneList.remove(drone);
+    }
+
     /**
      * Main method of the program
      *
@@ -174,6 +225,7 @@ public class DroneSubsystem {
      */
     public static void main(String[] args) {
         DroneSubsystem droneSub = new DroneSubsystem("Drone Subsystem");
+        droneSub.readZones();
         droneSub.initializeDrones();
         System.out.println("Drone Subsystem Online");
         droneSub.manageDrones();
@@ -219,6 +271,7 @@ public class DroneSubsystem {
             }
         }
 
+        private int droneNum;
         private droneState state;
         private int x, y; //coordinates of the drone's location
         private int destX, destY; // destination of drone's location
@@ -237,8 +290,9 @@ public class DroneSubsystem {
          *
          * @param ID the name of the drone
          */
-        public Drone(String ID, DroneSubsystem ParentSystem, int socketNumber) {
+        public Drone(String ID, int droneNum, DroneSubsystem ParentSystem, int socketNumber) {
             DroneID = ID;
+            this.droneNum = droneNum;
             state = droneState.IDLE;
             travelTime = 0.0;
             log = new ArrayList<>();
@@ -266,7 +320,7 @@ public class DroneSubsystem {
                 byte[] statusData = new byte[100];
                 statusData = status.getBytes();
                 //Can change InetAddress if different machines
-                DatagramPacket sendStatus = new DatagramPacket(statusData, status.length(), InetAddress.getLocalHost(), 6001);
+                DatagramPacket sendStatus = new DatagramPacket(statusData, status.length(), InetAddress.getLocalHost(), schedulerPort); //6001
                 this.droneSocket.send(sendStatus);
             } catch (IOException e) {
             }
@@ -357,7 +411,9 @@ public class DroneSubsystem {
                     String type = info[2];
                     String severity = info[3];
                     String fault = info[4];
-                    newEvent = new FireEvent(time, zoneID, type, severity, fault);
+                    Zone zone = getZone(zoneID);
+                    newEvent = new FireEvent(time, zoneID, type, severity, fault, zone);
+                    System.out.println(newEvent);
                     return newEvent;
                 }
             }catch(IOException e){}
@@ -381,6 +437,10 @@ public class DroneSubsystem {
          */
         private void enRoute() throws InterruptedException {
             try {
+                int[] dest = currentEvent.getZone().calculateCenter();
+                destX = dest[0];
+                destY = dest[1];
+
                 state = droneState.ENROUTE; //Changes state
                 log.add("ENROUTE");
                 sendStatus();

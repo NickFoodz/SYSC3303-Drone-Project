@@ -12,8 +12,9 @@ public class Zone {
 
     public int[] calculateCenter() {
         int[] center = new int[2];
-        center[0] = endX - startX;
-        center[1] = endY - startY;
+        center[0] = (endX + startX) / 2;
+        center[1] = (endY + startY) / 2;
+//        System.out.println("Zone " + id + ": " + center[0] + ", " + center[1]); //testing function
         return center;
     }
 

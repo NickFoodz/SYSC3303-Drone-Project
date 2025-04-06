@@ -10,7 +10,6 @@ import java.util.List;
 
 /**
  * TODO:
- * drone battery
  * if another task comes into a drone and is closer, the drone will handle that task first.
  *      -> will need to put a queue in each drone for this. Will probably require a scheduler redo :(
  * GUI!!!
@@ -29,10 +28,10 @@ public class DroneSubsystem {
     private final ArrayList<Drone> droneList;
     FireEvent current;
     private int DroneSubsystemPort = 5000;
-    private int DroneSubsystemSendPort = 5004;
+    private int DroneSubsystemSendPort = 5020;
     private int index;
     private DatagramSocket subsystemSocket, droneSendSocket;
-    private int numberOfDrones = 3;
+    private int numberOfDrones = 10;
     private List<Zone> allZones;
     private GUI gui;
 

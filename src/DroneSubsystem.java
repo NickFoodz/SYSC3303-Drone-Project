@@ -34,6 +34,8 @@ public class DroneSubsystem {
     private DatagramSocket subsystemSocket, droneSendSocket;
     private int numberOfDrones = 3;
     private List<Zone> allZones;
+    private GUI gui;
+
 
     /**
      * Constructor for the Drone Subsystem
@@ -54,6 +56,8 @@ public class DroneSubsystem {
         } catch (SocketException se) {
             se.printStackTrace();
         }
+
+        gui = new GUI();
     }
 
     public void readZones(){
@@ -105,9 +109,12 @@ public class DroneSubsystem {
     public void initializeDrones() {
         for (int i = 0; i < numberOfDrones; i++){
             //Create x drones
-            Drone drone = new Drone("Drone " + (i+1), i+1, this, (5000 + (i+1)));
+            String id = "Drone " + (i+1);
+            Drone drone = new Drone(id, i+1, this, (5000 + (i+1)));
             //Add drones to the List (drones at the base, idle)
             droneList.add(drone);
+            gui.updateDrone(id, 0, 0);
+
             //Start the threads
             Thread d = new Thread(drone);
             d.start();
@@ -472,6 +479,7 @@ public class DroneSubsystem {
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
                     y = coords[1];
+                    gui.updateDrone(DroneID, x, y);
                     Thread.sleep(500);
                 }
 
@@ -604,7 +612,17 @@ public class DroneSubsystem {
             log.add("RETURNING");
             sendStatus();
             System.out.println(DroneID + " returning to base");
-            Thread.sleep(500); //change to travel time
+
+            destX = 0;
+            destY = 0;
+            while (x != destX && y != destY) {
+                int[] coords = calculateNewCoordinates();
+                x = coords[0];
+                y = coords[1];
+                gui.updateDrone(DroneID, x, y);
+                Thread.sleep(500);
+            }
+
             travelTime = 0;
             //Return to the first state
             tank = TANK_MAX;

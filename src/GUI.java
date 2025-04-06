@@ -1,7 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GUI extends JFrame {
     private MapPanel mapPanel;
@@ -12,6 +15,8 @@ public class GUI extends JFrame {
     private static final Integer MAX_HEIGHT = 1500;
 
     public GUI() {
+        setVisible(true);
+
         // Set up the frame
         setTitle("Drone Simulation");
         setSize(1000, 800);
@@ -63,10 +68,15 @@ public class GUI extends JFrame {
         mapPanel.repaint();
     }
 
+    public void updateDrone(String id, int x, int y) {
+        mapPanel.updateDroneLocation(id, x, y);
+
+    }
+
     // Custom panel for drawing the map
     private class MapPanel extends JPanel {
         private List<List<Integer>> zones = new ArrayList<>();
-
+        private ConcurrentHashMap<String, List<Integer>> droneLocations = new ConcurrentHashMap<>();
         public MapPanel() {
             setBackground(Color.WHITE);
         }
@@ -86,6 +96,21 @@ public class GUI extends JFrame {
             currZone.add(y2);
             zones.add(currZone);
 
+        }
+
+        private synchronized void updateDroneLocation(String id, int x, int y) {
+            x = (int)((double) x / MAX_WIDTH * getWidth());
+            y = (int)((double) y / MAX_HEIGHT * getHeight());
+            List<Integer> newCoords = Arrays.asList(x, y);
+
+            // check if there is a value already
+            List<Integer> check = droneLocations.putIfAbsent(id, newCoords);
+            if (check != null) {
+                droneLocations.replace(id, newCoords);
+            }
+            System.out.println("heyo");
+
+            repaint();
         }
 
         @Override
@@ -113,7 +138,13 @@ public class GUI extends JFrame {
             }
 
             // for drones use g2d.fillOval(x, y, width, height)
-
+            for (List<Integer> coord : droneLocations.values()) {
+                int x = coord.get(0);
+                int y = coord.get(1);
+                System.out.println(x);
+                System.out.println(y);
+                g2d.fillOval(x-8, y-8, 16, 16); // circle of radius 8
+            }
         }
     }
 

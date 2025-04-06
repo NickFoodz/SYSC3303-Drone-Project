@@ -202,6 +202,25 @@ public class DroneSubsystem {
      * @throws InterruptedException
      */
     public void assignDrone(String eventInfo) throws InterruptedException {
+        FireEvent newEvent = convertStringtoFireEvent(eventInfo);
+
+        for (Drone drone : droneList) {
+            if (drone.state == Drone.droneState.ENROUTE){
+                if (drone.passZone(newEvent.getZone())){
+                    //System.out.println("GetZone");
+                    // add previous currentEvent to the drone's eventQueue
+                    FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
+                    drone.eventQueue.addLast(prevcurrentEvent);
+
+                    // Reassign current event to the newEvent
+                    drone.currentEvent = newEvent;
+                    drone.currentEventChanged = true;
+                    return;
+
+                }
+            }
+        }
+
         for (Drone drone : droneList) {
             if (drone.state == Drone.droneState.IDLE) {
                 int port = 5000 + drone.droneNum;
@@ -217,6 +236,24 @@ public class DroneSubsystem {
             }
         }
         System.out.println("Cant assign drone");
+    }
+
+    /**
+     * Converts event in string format to a FireEvent object
+     *
+     * @param eventInfo
+     * @return a FireEvent object
+     *
+     */
+    public FireEvent convertStringtoFireEvent(String eventInfo) {
+        String[] info = eventInfo.split(",");
+        String time = info[0];
+        int zoneID = Integer.parseInt(info[1]);
+        String type = info[2];
+        String severity = info[3];
+        String fault = info[4];
+        Zone zone = getZone(zoneID);
+        return new FireEvent(time, zoneID, type, severity, fault, zone);
     }
 
     /**
@@ -301,6 +338,7 @@ public class DroneSubsystem {
         private int destX, destY; // destination of drone's location
         private final int speed = 60; // km/h
         private FireEvent currentEvent;
+        private boolean currentEventChanged = false;
         private double travelTime;
         private double slope;
         private double y_intercept;
@@ -368,10 +406,13 @@ public class DroneSubsystem {
         private void idle() {
             sendStatus();
             while (true) {
-                FireEvent newEvent = waitForSignal();
+                FireEvent newEvent = null;
+
+                if (eventQueue.isEmpty()) newEvent = waitForSignal();
                 if(newEvent != null){
                     eventQueue.addLast(newEvent);
                 }
+
                 if(!eventQueue.isEmpty() && state == droneState.IDLE){
                     try{
                         startEvent(eventQueue.poll());
@@ -483,6 +524,11 @@ public class DroneSubsystem {
                 System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
                 travelTime = methodToCalculateTravelTime();
                 while (x != destX && y != destY) {
+                    // check if event has been reassigned
+                    if (currentEventChanged){
+                        currentEventChanged = false;
+                        throw new DroneReassigned();
+                    }
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
                     y = coords[1];
@@ -504,6 +550,9 @@ public class DroneSubsystem {
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
                 sendEventToDroneSubsystem(currentEvent);
+            } catch (DroneReassigned r) {
+                // Recall this function with the new currentEvent
+                enRoute();
             }
         }
 
@@ -723,6 +772,11 @@ public class DroneSubsystem {
     public class DroneNetworkFailure extends Exception {
         public DroneNetworkFailure(String message) {
             super(message);
+        }
+    }
+    public class DroneReassigned extends Exception {
+        public DroneReassigned() {
+            super();
         }
     }
 }

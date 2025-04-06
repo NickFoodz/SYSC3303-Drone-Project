@@ -297,6 +297,7 @@ public class DroneSubsystem {
         private FireEvent currentEvent;
         private double travelTime;
         private double slope;
+        private double y_intercept;
         private boolean dir; // for calculating coordinates: true is positive, false is negative
 
         //agent tank
@@ -503,6 +504,7 @@ public class DroneSubsystem {
         private double methodToCalculateTravelTime() {
             double dist = Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2));
             slope = (double) (destY - y) / (destX - x);
+            y_intercept = y - (slope * x);
             if (slope >= 0) {
                 if (destY > y && destX > x) {
                     dir = true;
@@ -540,6 +542,25 @@ public class DroneSubsystem {
                 coords[1] = (int) (y - coordY);
             }
             return coords;
+        }
+
+        private boolean passZone(Zone z) {
+            if (state.equals(droneState.ENROUTE)) {
+                // y = mx + b
+                double leftY = (slope * z.startX) + y_intercept;
+                double rightY = (slope * z.endX) + y_intercept;
+                double topX = (z.startY - y_intercept) / slope;
+                double bottomX = (z.endY - y_intercept) / slope;
+
+                // check if it is within path and intersects the zone
+                if ((leftY >= Math.min(x, destX) && leftY <= Math.max(x, destX) && leftY >= z.startX && leftY <= z.endX) ||
+                    (rightY >= Math.min(x, destX) && rightY <= Math.max(x, destX) && rightY >= z.startX && rightY <= z.endX) ||
+                    (topX >= Math.min(y, destY) && topX <= Math.max(y, destY) && topX >= z.startY && topX <= z.endY) ||
+                    (bottomX >= Math.min(y, destY) && bottomX <= Math.max(y, destY) && bottomX >= z.startY && bottomX <= z.endY)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**

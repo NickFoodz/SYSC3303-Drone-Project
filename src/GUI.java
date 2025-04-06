@@ -77,7 +77,6 @@ public class GUI extends JFrame {
     private class MapPanel extends JPanel {
         private List<List<Integer>> zones = new ArrayList<>();
         private ConcurrentHashMap<String, List<Integer>> droneLocations = new ConcurrentHashMap<>();
-        private ConcurrentHashMap<String, Color> droneColors = new ConcurrentHashMap<>();
         public MapPanel() {
             setBackground(Color.WHITE);
         }
@@ -99,13 +98,6 @@ public class GUI extends JFrame {
 
         }
 
-        private Color getRandomColor() {
-            float r = (float)Math.random();
-            float g = (float)Math.random();
-            float b = (float)Math.random();
-            return new Color(r, g, b);
-        }
-
         private synchronized void updateDroneLocation(String id, int x, int y) {
             x = (int)((double) x / MAX_WIDTH * getWidth());
             y = (int)((double) y / MAX_HEIGHT * getHeight());
@@ -116,9 +108,7 @@ public class GUI extends JFrame {
             if (check != null) {
                 droneLocations.replace(id, newCoords);
             }
-
-            droneColors.computeIfAbsent(id, k -> getRandomColor());
-            System.out.println("heyo");
+            System.out.printf("print new location of %s: (%d, %d)\n", id, x, y);
 
             repaint();
         }
@@ -148,12 +138,12 @@ public class GUI extends JFrame {
             }
 
             // for drones use g2d.fillOval(x, y, width, height)
-            for (String id : droneLocations.keySet()) {
-                List<Integer> coord = droneLocations.get(id);
+            for (List<Integer> coord : droneLocations.values()) {
                 int x = coord.get(0);
                 int y = coord.get(1);
-                g2d.setColor(droneColors.getOrDefault(id, Color.BLUE));
-                g2d.fillOval(x - 8, y - 8, 16, 16); // Draw drone
+//                System.out.println(x);
+//                System.out.println(y);
+                g2d.fillOval(x-8, y-8, 16, 16); // circle of radius 8
             }
         }
     }

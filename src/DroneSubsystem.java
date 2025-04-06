@@ -525,6 +525,7 @@ public class DroneSubsystem {
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
                     y = coords[1];
+                    System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
                     gui.updateDrone(DroneID, x, y);
                     Thread.sleep(500);
                 }
@@ -574,7 +575,7 @@ public class DroneSubsystem {
 
         private int[] calculateNewCoordinates() {
             // check for overshooting
-            if (Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2)) >= speed) {
+            if (Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2)) <= speed) {
                 return new int[]{destX, destY};
             }
 

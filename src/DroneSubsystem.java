@@ -4,11 +4,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.net.*;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  * TODO:
- * drone agent tanks
  * drone battery
  * if another task comes into a drone and is closer, the drone will handle that task first.
  *      -> will need to put a queue in each drone for this. Will probably require a scheduler redo :(
@@ -131,7 +132,7 @@ public class DroneSubsystem {
                     //Convert into FireEvent
                     FireEvent newEvent;
                     String[] info = receiveString.split(",");
-                    if (info.length == 5) {
+                    if (info.length == 6) {
                         String time = info[0];
                         int zoneID = Integer.parseInt(info[1]);
                         String type = info[2];
@@ -291,9 +292,16 @@ public class DroneSubsystem {
         private double slope;
         private boolean dir; // for calculating coordinates: true is positive, false is negative
 
+        //agent tank
+        private int tank;
+        private final int TANK_MAX = 15; // 15L max
+
         //Socket to send updates to the Scheduler
         private DatagramSocket droneSocket;
         private ArrayList<String> log;
+
+        //fireEvent Queue
+        private Deque<FireEvent> eventQueue;
 
         /**
          * Constructor for drones
@@ -305,8 +313,11 @@ public class DroneSubsystem {
             this.droneNum = droneNum;
             state = droneState.IDLE;
             travelTime = 0.0;
+            tank = TANK_MAX;
             log = new ArrayList<>();
             log.add("IDLE");
+
+            eventQueue = new LinkedList<>();
             try {
                 droneSocket = new DatagramSocket(socketNumber);
             } catch (SocketException e) {
@@ -345,9 +356,14 @@ public class DroneSubsystem {
             while (true) {
                 FireEvent newEvent = waitForSignal();
                 if(newEvent != null){
-                    try {
-                        startEvent(newEvent);
-                    } catch (InterruptedException e) {}
+                    eventQueue.addLast(newEvent);
+                }
+                if(!eventQueue.isEmpty() && state == droneState.IDLE){
+                    try{
+                        startEvent(eventQueue.poll());
+                    } catch (InterruptedException e) {
+                        System.out.println("Interrupted");
+                    }
                 }
             }
         }
@@ -389,43 +405,39 @@ public class DroneSubsystem {
          * @return the amount of water in L
          */
         public int putOutFire(FireEvent event) {
-            String sev = event.getSeverity();
-            int waterToUse = 0;
-            switch (sev) {
-                case ("High"):
-                    waterToUse = 30;
-                    break;
-                case ("Moderate"):
-                    waterToUse = 20;
-                    break;
-                case ("Low"):
-                    waterToUse = 10;
-                    break;
-            }
-            return waterToUse;
+            int needed = event.getNeededToPutOut();
+
+            int waterUsed = Math.min(needed, tank);
+            event.setNeededToPutOut(needed - waterUsed);
+            tank -= waterUsed;
+
+            return waterUsed;
         }
 
         public FireEvent waitForSignal(){
             byte[] eventData = new byte[100];
             DatagramPacket eventPacket = new DatagramPacket(eventData, eventData.length);
             try {
+//                droneSocket.setSoTimeout(100);
                 this.droneSocket.receive(eventPacket);
                 String receiveString = new String(eventPacket.getData(), 0, eventPacket.getLength());
 
                 //Convert into FireEvent
                 FireEvent newEvent;
                 String[] info = receiveString.split(",");
-                if (info.length == 5) {
+                if (info.length == 6) {
                     String time = info[0];
                     int zoneID = Integer.parseInt(info[1]);
                     String type = info[2];
                     String severity = info[3];
                     String fault = info[4];
                     Zone zone = getZone(zoneID);
-                    newEvent = new FireEvent(time, zoneID, type, severity, fault, zone);
+                    int agentNeeded = Integer.parseInt(info[5]);
+                    newEvent = new FireEvent(time, zoneID, type, severity, fault, zone, agentNeeded);
                     System.out.println(newEvent);
                     return newEvent;
                 }
+
             }catch(IOException e){}
             return null;
         }
@@ -476,16 +488,7 @@ public class DroneSubsystem {
 
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
-                byte[] outData = new byte[100];
-                String eventString = currentEvent.summarizeEvent();
-                outData = eventString.getBytes();
-                try {
-                    DatagramPacket sendEvent = new DatagramPacket(outData, eventString.length(), InetAddress.getLocalHost(), 5000);
-                    //Try sending to Drone subsystem
-                    droneSocket.send(sendEvent);
-                } catch (IOException e) {
-
-                }
+                sendEventToDroneSubsystem(currentEvent);
             }
         }
 
@@ -541,15 +544,22 @@ public class DroneSubsystem {
                 state = droneState.DEPLOYINGAGENT; //Change state
                 log.add("DEPLOYINGAGENT");
                 sendStatus();
-                System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() + ", deploying " + putOutFire(currentEvent) + "L of agent");
+                System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() + ", attempting to deploy agent");
 
                 if (currentEvent.getFault().equals("Nozzle Jammed")) {
                     throw new DroneNozzleStuck(DroneID + "'s Nozzle is stuck. Disabling");
                 }
 
-                int waterToUse = putOutFire(currentEvent);
-                Thread.sleep(500);
+                System.out.println(DroneID + " at Zone " + currentEvent.getZoneID() + ", deployed " + putOutFire(currentEvent) + "L of agent");
+
+                Thread.sleep(500); //TODO: add timer?
                 //Go to next state
+                if(currentEvent.getNeededToPutOut() != 0){
+                    System.out.println(DroneID + " Should be handling this event next " + currentEvent);
+//                    eventQueue.addFirst(currentEvent); //legacy; keep for now
+                    sendEventToDroneSubsystem(currentEvent);
+
+                }
                 returnToBase();
 
             } catch (DroneNozzleStuck d){
@@ -568,16 +578,20 @@ public class DroneSubsystem {
 
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
-                byte[] outData = new byte[100];
-                String eventString = currentEvent.summarizeEvent();
-                outData = eventString.getBytes();
-                try {
-                    DatagramPacket sendEvent = new DatagramPacket(outData, eventString.length(), InetAddress.getLocalHost(), 5000);
-                    //Try sending to Drone subsystem
-                    droneSocket.send(sendEvent);
-                } catch (IOException e) {
+                sendEventToDroneSubsystem(currentEvent);
 
-                }
+            }
+        }
+
+        private void sendEventToDroneSubsystem(FireEvent currentEvent){
+            byte[] outData = new byte[100];
+            String eventString = currentEvent.summarizeEvent();
+            outData = eventString.getBytes();
+            try {
+                DatagramPacket sendEvent = new DatagramPacket(outData, eventString.length(), InetAddress.getLocalHost(), 5000);
+                //Try sending to Drone subsystem
+                droneSocket.send(sendEvent);
+            } catch (IOException e) {
 
             }
         }
@@ -593,6 +607,7 @@ public class DroneSubsystem {
             Thread.sleep(500); //change to travel time
             travelTime = 0;
             //Return to the first state
+            tank = TANK_MAX;
             state = droneState.IDLE;
             log.add("IDLE");
             //sendStatus();

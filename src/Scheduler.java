@@ -71,7 +71,7 @@ public class Scheduler {
             if(receivePacket.getPort() == 5999){
                 //Convert into FireEvent
                 String[] info = recMsg.split(",");
-                if (info.length == 5) {
+                if (info.length == 6) {
                     String time = info[0];
                     int zoneID = Integer.parseInt(info[1]);
                     String type = info[2];

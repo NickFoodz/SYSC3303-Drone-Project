@@ -27,7 +27,7 @@ class DroneSubsystemTest {
     void testInitializeDrones() {
         droneSubsystem.initializeDrones();
 
-        assertEquals(droneSubsystem.getDroneNum(), droneSubsystem.getDroneList().size(), "all drones are initialized");
+        assertEquals(3, droneSubsystem.getDroneList().size(), "all drones are initialized");
 //        droneSubsystem.TESTING_closeSockets();
     }
 
@@ -141,4 +141,23 @@ class DroneSubsystemTest {
 //        droneSubsystem.TESTING_closeSockets();
 
     }
+
+    @Test
+    void testRerouteEvents() throws InterruptedException {
+        droneSubsystem.initializeDrones();
+        DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);
+
+        FireEvent fireEvent1 = new FireEvent("13:00:05",4,"FIRE_DETECTED","Low", "null");
+        FireEvent fireEvent2 = new FireEvent("13:00:06",1,"FIRE_DETECTED","Low", "null");
+
+
+        droneSubsystem.assignDrone(fireEvent1.summarizeEvent());
+        droneSubsystem.assignDrone(fireEvent2.summarizeEvent());
+
+        System.out.println("\nLOG: " + drone.getLog());
+
+
+
+    }
+
 }

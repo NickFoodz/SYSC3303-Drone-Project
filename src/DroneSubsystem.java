@@ -26,6 +26,7 @@ public class DroneSubsystem {
     private String zoneFilePath = "Sample_zone_file.csv"; //File path to the .csv
     private final int schedulerPort = 6001;
     private final ArrayList<Drone> droneList;
+    private final ArrayList<Drone> masterDroneList;
     FireEvent current;
     private int DroneSubsystemPort = 5000;
     private int DroneSubsystemSendPort = 5020;
@@ -46,6 +47,7 @@ public class DroneSubsystem {
 
         //droneState state = droneState.IDLE; //Starting state is idle
         droneList = new ArrayList<>();
+        masterDroneList = new ArrayList<>();
         current = null;
         index = 0;
         allZones = new ArrayList<>();
@@ -119,6 +121,7 @@ public class DroneSubsystem {
             Drone drone = new Drone(id, i+1, this, (5000 + (i+1)));
             //Add drones to the List (drones at the base, idle)
             droneList.add(drone);
+            masterDroneList.add(drone);
             gui.updateDrone(id, 0, 0, drone.state);
 
             //Start the threads
@@ -207,13 +210,14 @@ public class DroneSubsystem {
 
         // Find the queue length of the drone with the least events
         int lowestNumEvents = 0;
-        if (!droneList.isEmpty()) lowestNumEvents = droneList.get(0).eventQueue.size();
-        for (Drone drone : droneList) {
+        if (!masterDroneList.isEmpty()) lowestNumEvents = masterDroneList.get(0).eventQueue.size();
+        for (Drone drone : masterDroneList) {
             if (drone.eventQueue.size() < lowestNumEvents) lowestNumEvents = drone.eventQueue.size();
         }
 
         // Check if the event is along the route for each drone
-        for (Drone drone : droneList) {
+        for (Drone drone : masterDroneList) {
+            System.out.println("\nCheck event reroute: " + drone.passZone(newEvent.getZone()));
             if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
                 // Reassign previous currentEvent to the drone's eventQueue
                 FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());

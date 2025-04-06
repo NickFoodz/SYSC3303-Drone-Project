@@ -1,0 +1,126 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class GUI extends JFrame {
+    private MapPanel mapPanel;
+    private JButton addPointButton, clearButton;
+    private JLabel statusLabel;
+
+    private static final Integer MAX_WIDTH = 2000;
+    private static final Integer MAX_HEIGHT = 1500;
+
+    public GUI() {
+        // Set up the frame
+        setTitle("Drone Simulation");
+        setSize(1000, 800);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Create the main panel with BorderLayout
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Create the map panel
+        mapPanel = new MapPanel();
+        mapPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        mainPanel.add(mapPanel, BorderLayout.CENTER);
+
+        // Create control panel
+        JPanel controlPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+
+        // Add point button
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        addPointButton = new JButton("Add Zone");
+        addPointButton.addActionListener(e -> addCoords());
+        controlPanel.add(addPointButton, gbc);
+
+
+        // Status label
+        gbc.gridy = 5;
+        gbc.insets = new Insets(15, 5, 5, 5);
+        statusLabel = new JLabel("Drones ready to deploy");
+        controlPanel.add(statusLabel, gbc);
+
+        // Add the control panel to the main panel
+        mainPanel.add(controlPanel, BorderLayout.EAST);
+
+        // Add the main panel to the frame
+        add(mainPanel);
+    }
+
+    private void addCoords() {
+        mapPanel.addZone(0, 0, 700, 600);
+        mapPanel.addZone(700,0,2000,600);
+        mapPanel.addZone(0,600,1300,1500);
+        mapPanel.addZone(1300,600,2000,1500);
+        mapPanel.repaint();
+    }
+
+    // Custom panel for drawing the map
+    private class MapPanel extends JPanel {
+        private List<List<Integer>> zones = new ArrayList<>();
+
+        public MapPanel() {
+            setBackground(Color.WHITE);
+        }
+
+        public void addZone(int x1, int y1, int x2, int y2) {
+            int width = getWidth();
+            int height = getHeight();
+
+            x1 = (int)((double) x1 / MAX_WIDTH * width);
+            y1 = (int)((double) y1 / MAX_HEIGHT * height);
+            x2 = (int)((double) x2 / MAX_WIDTH * width);
+            y2 = (int)((double) y2 / MAX_HEIGHT * height);
+            List<Integer> currZone = new ArrayList<>();
+            currZone.add(x1);
+            currZone.add(y1);
+            currZone.add(x2);
+            currZone.add(y2);
+            zones.add(currZone);
+
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+
+            // Enable anti-aliasing for smoother drawing
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2d.setColor(new Color(220, 220, 220));
+
+            // Draw all the lines
+            g2d.setColor(Color.BLUE);
+            g2d.setStroke(new BasicStroke(2));
+            for (List<Integer> zone : zones) {
+                int x1 = zone.get(0);
+                int y1 = zone.get(1);
+                int x2 = zone.get(2);
+                int y2 = zone.get(3);
+                g2d.drawLine(x1, y1, x2, y1);
+                g2d.drawLine(x2, y1, x2, y2);
+                g2d.drawLine(x2, y2, x1, y2);
+                g2d.drawLine(x1, y2, x1, y1);
+            }
+
+            // for drones use g2d.fillOval(x, y, width, height)
+
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            GUI app = new GUI();
+            app.setVisible(true);
+        });
+    }
+}

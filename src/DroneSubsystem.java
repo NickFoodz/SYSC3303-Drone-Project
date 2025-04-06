@@ -204,20 +204,27 @@ public class DroneSubsystem {
     public void assignDrone(String eventInfo) throws InterruptedException {
         FireEvent newEvent = convertStringtoFireEvent(eventInfo);
 
+        // Find the queue length of the drone with the least events
+        int lowestNumEvents = 0;
+        if (!droneList.isEmpty()) lowestNumEvents = droneList.get(0).eventQueue.size();
         for (Drone drone : droneList) {
-            if (drone.state == Drone.droneState.ENROUTE){
-                if (drone.passZone(newEvent.getZone())){
-                    //System.out.println("GetZone");
-                    // add previous currentEvent to the drone's eventQueue
-                    FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
-                    drone.eventQueue.addLast(prevcurrentEvent);
+            if (drone.eventQueue.size() < lowestNumEvents) lowestNumEvents = drone.eventQueue.size();
+        }
 
-                    // Reassign current event to the newEvent
-                    drone.currentEvent = newEvent;
-                    drone.currentEventChanged = true;
-                    return;
+        // Check if the event is along the route for each drone
+        for (Drone drone : droneList) {
+            if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
+                // Reassign previous currentEvent to the drone's eventQueue
+                FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
+                drone.eventQueue.addLast(prevcurrentEvent);
 
-                }
+                // Assign the new event as the currentEvent
+                drone.currentEvent = newEvent;
+                drone.currentEventChanged = true;
+
+                System.out.println("Event: " + drone.currentEvent.toString()  + " is within path of " + drone.getDroneID());
+                System.out.println(drone.getDroneID() + " is reassigned to Event: " + drone.currentEvent.toString());
+                return;
             }
         }
 
@@ -524,11 +531,14 @@ public class DroneSubsystem {
                 System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
                 travelTime = methodToCalculateTravelTime();
                 while (x != destX && y != destY) {
-                    // check if event has been reassigned
+                    // Check if event has been reassigned
                     if (currentEventChanged){
                         currentEventChanged = false;
-                        throw new DroneReassigned();
+                        // Recall enRoute() for the new currentEvent
+                        enRoute();
+                        return;
                     }
+
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
                     y = coords[1];
@@ -551,9 +561,6 @@ public class DroneSubsystem {
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
                 sendEventToDroneSubsystem(currentEvent);
-            } catch (DroneReassigned r) {
-                // Recall this function with the new currentEvent
-                enRoute();
             }
         }
 
@@ -777,11 +784,6 @@ public class DroneSubsystem {
     public class DroneNetworkFailure extends Exception {
         public DroneNetworkFailure(String message) {
             super(message);
-        }
-    }
-    public class DroneReassigned extends Exception {
-        public DroneReassigned() {
-            super();
         }
     }
 }

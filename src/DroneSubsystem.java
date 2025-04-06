@@ -11,9 +11,8 @@ import java.util.List;
 
 /**
  * TODO:
- * if another task comes into a drone and is closer, the drone will handle that task first.
- *      -> will need to put a queue in each drone for this. Will probably require a scheduler redo :(
- * GUI!!!
+ * Tests
+ * Faults in UI
  */
 
 
@@ -639,6 +638,7 @@ public class DroneSubsystem {
                 System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() + ", attempting to deploy agent");
 
                 if (currentEvent.getFault().equals("Nozzle Jammed")) {
+                    gui.displayFault(currentEvent.getFault());
                     throw new DroneNozzleStuck(DroneID + "'s Nozzle is stuck. Disabling");
                 }
 
@@ -672,6 +672,8 @@ public class DroneSubsystem {
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
                 sendEventToDroneSubsystem(currentEvent);
+
+                gui.displayFaultReset();
 
             }
         }

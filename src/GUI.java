@@ -12,7 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GUI extends JFrame {
     private MapPanel mapPanel;
     private JButton addPointButton, clearButton;
-    private JLabel statusLabel;
+    private JLabel statusLabel, faultLabel;
+    private JTextArea faultTextArea;
 
     private static Integer MAX_WIDTH = 2000;
     private static Integer MAX_HEIGHT = 1500;
@@ -38,26 +39,58 @@ public class GUI extends JFrame {
         mapPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         mainPanel.add(mapPanel, BorderLayout.CENTER);
 
-        // Create control panel
+        //panel on the right
         JPanel controlPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0;
 
-
-        // Status label
-        gbc.gridy = 5;
-        gbc.insets = new Insets(15, 5, 5, 5);
+        //TOP LABEL
+        gbc.gridy = 0;
         statusLabel = new JLabel("Drones ready to deploy");
         controlPanel.add(statusLabel, gbc);
 
-        // Add the control panel to the main panel
-        mainPanel.add(controlPanel, BorderLayout.EAST);
+        //SPACER
+        gbc.gridy = 1;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        controlPanel.add(new JPanel(), gbc); // just an empty spacer panel
 
-        // Add the main panel to the frame
+        //FAULT LABEL
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weighty = 0;
+        faultLabel = new JLabel("Fault Log:");
+        controlPanel.add(faultLabel, gbc);
+
+        //FAULT TEXT BOX
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.BOTH;
+        faultTextArea = new JTextArea(6, 20);
+        faultTextArea.setEditable(false);
+        faultTextArea.setLineWrap(true);
+        faultTextArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(faultTextArea);
+        gbc.weighty = 0.3;
+        controlPanel.add(scrollPane, gbc);
+
+        mainPanel.add(controlPanel, BorderLayout.EAST);
         add(mainPanel);
+
+        faultTextArea.append("No Faults Detected\n");
     }
 
+    public void displayFault(String fault){
+        faultTextArea.append(fault + "\n");
+    }
+    public void displayFaultReset(){
+        faultTextArea.append("Fault Handled\n");
+    }
+
+
     public void updateDimensions(List<Zone> zoneList) {
-        int maxWidth = 0, maxHeight = 0;
         for(Zone z : zoneList){
             if(z.getEndX() > MAX_WIDTH) {MAX_WIDTH = z.getEndX()+5;}
             if(z.getEndY() > MAX_HEIGHT) {MAX_HEIGHT = z.getEndY()+5;}
@@ -159,11 +192,4 @@ public class GUI extends JFrame {
             }
         }
     }
-
-//    public static void main(String[] args) {
-//        SwingUtilities.invokeLater(() -> {
-//            GUI app = new GUI();
-//            app.setVisible(true);
-//        });
-//    }
 }

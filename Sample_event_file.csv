@@ -6,4 +6,4 @@ Time,Zone ID,Event type,Severity,Fault(Drone Stuck, Nozzle Jammed, Packet Loss/C
 13:00:09,3,FIRE_DETECTED,Low,null
 13:03:15,3,FIRE_DETECTED,Moderate,null
 14:03:15,3,FIRE_DETECTED,High,Nozzle Jammed
-14:10:00,7,DRONE_REQUEST,Moderate,null
+14:10:00,4,DRONE_REQUEST,Moderate,null

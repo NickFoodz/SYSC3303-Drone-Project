@@ -1,5 +1,5 @@
 public class Zone {
-    int id, startX, startY, endX, endY;
+    private int id, startX, startY, endX, endY;
 
     public Zone(int id, int startX, int startY, int endX, int endY){
         this.id = id;
@@ -21,6 +21,12 @@ public class Zone {
     public int getZoneId(){
         return id;
     }
+
+    public int getStartX(){return startX;}
+    public int getStartY(){return startY;}
+    public int getEndX(){return endX;}
+    public int getEndY(){return endY;}
+
 
     @Override
     public String toString() {

@@ -1,4 +1,5 @@
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -56,7 +57,14 @@ public class DroneSubsystem {
             se.printStackTrace();
         }
 
+        readZones();
+
         gui = new GUI();
+        gui.updateDimensions(allZones);
+        SwingUtilities.invokeLater(() -> {
+            gui.setVisible(true);
+            gui.addCoords(allZones);
+        });
     }
 
     public void readZones(){
@@ -286,7 +294,6 @@ public class DroneSubsystem {
      */
     public static void main(String[] args) {
         DroneSubsystem droneSub = new DroneSubsystem("Drone Subsystem");
-        droneSub.readZones();
         droneSub.initializeDrones();
         System.out.println("Drone Subsystem Online");
         droneSub.manageDrones();
@@ -535,6 +542,7 @@ public class DroneSubsystem {
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
                     y = coords[1];
+                    System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
                     gui.updateDrone(DroneID, x, y);
                     Thread.sleep(500);
                 }
@@ -581,7 +589,7 @@ public class DroneSubsystem {
 
         private int[] calculateNewCoordinates() {
             // check for overshooting
-            if (Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2)) >= speed) {
+            if (Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2)) <= speed) {
                 return new int[]{destX, destY};
             }
 
@@ -602,16 +610,16 @@ public class DroneSubsystem {
         private boolean passZone(Zone z) {
             if (state.equals(droneState.ENROUTE)) {
                 // y = mx + b
-                double leftY = (slope * z.startX) + y_intercept;
-                double rightY = (slope * z.endX) + y_intercept;
-                double topX = (z.startY - y_intercept) / slope;
-                double bottomX = (z.endY - y_intercept) / slope;
+                double leftY = (slope * z.getStartX()) + y_intercept;
+                double rightY = (slope * z.getEndX()) + y_intercept;
+                double topX = (z.getStartY() - y_intercept) / slope;
+                double bottomX = (z.getEndY() - y_intercept) / slope;
 
                 // check if it is within path and intersects the zone
-                if ((leftY >= Math.min(x, destX) && leftY <= Math.max(x, destX) && leftY >= z.startX && leftY <= z.endX) ||
-                    (rightY >= Math.min(x, destX) && rightY <= Math.max(x, destX) && rightY >= z.startX && rightY <= z.endX) ||
-                    (topX >= Math.min(y, destY) && topX <= Math.max(y, destY) && topX >= z.startY && topX <= z.endY) ||
-                    (bottomX >= Math.min(y, destY) && bottomX <= Math.max(y, destY) && bottomX >= z.startY && bottomX <= z.endY)) {
+                if ((leftY >= Math.min(x, destX) && leftY <= Math.max(x, destX) && leftY >= z.getStartX() && leftY <= z.getEndX()) ||
+                    (rightY >= Math.min(x, destX) && rightY <= Math.max(x, destX) && rightY >= z.getStartX() && rightY <= z.getEndX()) ||
+                    (topX >= Math.min(y, destY) && topX <= Math.max(y, destY) && topX >= z.getStartY() && topX <= z.getEndY()) ||
+                    (bottomX >= Math.min(y, destY) && bottomX <= Math.max(y, destY) && bottomX >= z.getStartY() && bottomX <= z.getEndY())) {
                     return true;
                 }
             }
@@ -634,9 +642,10 @@ public class DroneSubsystem {
                     throw new DroneNozzleStuck(DroneID + "'s Nozzle is stuck. Disabling");
                 }
 
-                System.out.println(DroneID + " at Zone " + currentEvent.getZoneID() + ", deployed " + putOutFire(currentEvent) + "L of agent");
+                int agentUsed = putOutFire(currentEvent);
+                System.out.println(DroneID + " at Zone " + currentEvent.getZoneID() + ", deployed " + agentUsed + "L of agent");
 
-                Thread.sleep(500); //TODO: add timer?
+                Thread.sleep((agentUsed / 10) * 1000L);
                 //Go to next state
                 if(currentEvent.getNeededToPutOut() != 0){
                     System.out.println(DroneID + " Should be handling this event next " + currentEvent);

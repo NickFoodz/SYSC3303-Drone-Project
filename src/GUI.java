@@ -1,5 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,11 +14,14 @@ public class GUI extends JFrame {
     private JButton addPointButton, clearButton;
     private JLabel statusLabel;
 
-    private static final Integer MAX_WIDTH = 2000;
-    private static final Integer MAX_HEIGHT = 1500;
+    private static Integer MAX_WIDTH = 2000;
+    private static Integer MAX_HEIGHT = 1500;
+
 
     public GUI() {
         setVisible(true);
+        //update max width and height if needed
+
 
         // Set up the frame
         setTitle("Drone Simulation");
@@ -37,16 +43,6 @@ public class GUI extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
 
 
-        // Add point button
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        addPointButton = new JButton("Add Zone");
-        addPointButton.addActionListener(e -> addCoords());
-        controlPanel.add(addPointButton, gbc);
-
-
         // Status label
         gbc.gridy = 5;
         gbc.insets = new Insets(15, 5, 5, 5);
@@ -60,11 +56,18 @@ public class GUI extends JFrame {
         add(mainPanel);
     }
 
-    private void addCoords() {
-        mapPanel.addZone(0, 0, 700, 600);
-        mapPanel.addZone(700,0,2000,600);
-        mapPanel.addZone(0,600,1300,1500);
-        mapPanel.addZone(1300,600,2000,1500);
+    public void updateDimensions(List<Zone> zoneList) {
+        int maxWidth = 0, maxHeight = 0;
+        for(Zone z : zoneList){
+            if(z.getEndX() > MAX_WIDTH) {MAX_WIDTH = z.getEndX()+5;}
+            if(z.getEndY() > MAX_HEIGHT) {MAX_HEIGHT = z.getEndY()+5;}
+        }
+    }
+
+    public void addCoords(List<Zone> zoneList) {
+        for(Zone z : zoneList){
+            mapPanel.addZone(z.getStartX(), z.getStartY(), z.getEndX(), z.getEndY());
+        }
         mapPanel.repaint();
     }
 
@@ -77,7 +80,6 @@ public class GUI extends JFrame {
     private class MapPanel extends JPanel {
         private List<List<Integer>> zones = new ArrayList<>();
         private ConcurrentHashMap<String, List<Integer>> droneLocations = new ConcurrentHashMap<>();
-        private ConcurrentHashMap<String, Color> droneColors = new ConcurrentHashMap<>();
         public MapPanel() {
             setBackground(Color.WHITE);
         }
@@ -99,13 +101,6 @@ public class GUI extends JFrame {
 
         }
 
-        private Color getRandomColor() {
-            float r = (float)Math.random();
-            float g = (float)Math.random();
-            float b = (float)Math.random();
-            return new Color(r, g, b);
-        }
-
         private synchronized void updateDroneLocation(String id, int x, int y) {
             x = (int)((double) x / MAX_WIDTH * getWidth());
             y = (int)((double) y / MAX_HEIGHT * getHeight());
@@ -116,9 +111,7 @@ public class GUI extends JFrame {
             if (check != null) {
                 droneLocations.replace(id, newCoords);
             }
-
-            droneColors.computeIfAbsent(id, k -> getRandomColor());
-            System.out.println("heyo");
+            System.out.printf("print new location of %s: (%d, %d)\n", id, x, y);
 
             repaint();
         }
@@ -148,20 +141,20 @@ public class GUI extends JFrame {
             }
 
             // for drones use g2d.fillOval(x, y, width, height)
-            for (String id : droneLocations.keySet()) {
-                List<Integer> coord = droneLocations.get(id);
+            for (List<Integer> coord : droneLocations.values()) {
                 int x = coord.get(0);
                 int y = coord.get(1);
-                g2d.setColor(droneColors.getOrDefault(id, Color.BLUE));
-                g2d.fillOval(x - 8, y - 8, 16, 16); // Draw drone
+//                System.out.println(x);
+//                System.out.println(y);
+                g2d.fillOval(x-8, y-8, 16, 16); // circle of radius 8
             }
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            GUI app = new GUI();
-            app.setVisible(true);
-        });
-    }
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> {
+//            GUI app = new GUI();
+//            app.setVisible(true);
+//        });
+//    }
 }

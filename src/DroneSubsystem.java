@@ -677,6 +677,7 @@ public class DroneSubsystem {
                 state = droneState.DISABLED;
                 log.add("DISABLED");
                 sendStatus();
+                gui.updateDrone(DroneID, state);
                 //for(String n : log){
                    // System.out.println(n);
                 //}
@@ -731,6 +732,7 @@ public class DroneSubsystem {
             tank = TANK_MAX;
             state = droneState.IDLE;
             log.add("IDLE");
+            gui.updateDrone(DroneID, state);
             //sendStatus();
         }
 

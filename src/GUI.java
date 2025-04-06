@@ -144,6 +144,11 @@ public class GUI extends JFrame {
         refreshDroneStatusDisplay();
     }
 
+    public void updateDrone(String id, DroneSubsystem.Drone.droneState d){
+        droneStates.put(id, d);
+        refreshDroneStatusDisplay();
+    }
+
     // Custom panel for drawing the map
     private class MapPanel extends JPanel {
         private List<List<Integer>> zones = new ArrayList<>();

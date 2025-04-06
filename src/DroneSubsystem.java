@@ -693,10 +693,14 @@ public class DroneSubsystem {
 
             destX = 0;
             destY = 0;
+            travelTime = methodToCalculateTravelTime();
+
             while (x != destX && y != destY) {
                 int[] coords = calculateNewCoordinates();
                 x = coords[0];
                 y = coords[1];
+                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
+
                 gui.updateDrone(DroneID, x, y);
                 Thread.sleep(500);
             }

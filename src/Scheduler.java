@@ -18,6 +18,8 @@ public class Scheduler {
     public ArrayList<String> log;
     List<Zone> allZones;
 
+    public Boolean TESTING_rejectionHandled;
+
     /**
      * Constructor for scheduler class
      */
@@ -33,6 +35,7 @@ public class Scheduler {
         } catch (SocketException se) {
             se.printStackTrace();
         }
+        TESTING_rejectionHandled = false;
     }
 
 
@@ -150,7 +153,7 @@ public class Scheduler {
                     notifyAcceptance(current); //Maybe remove? or at least change name. Gonna leave in for niceness in console
                     System.out.println("Drone did not accept task\n");
                     current = eventList.getFirst();
-
+                    TESTING_rejectionHandled = true;
                 }
 
 

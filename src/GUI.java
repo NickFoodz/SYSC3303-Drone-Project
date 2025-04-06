@@ -14,9 +14,12 @@ public class GUI extends JFrame {
     private JButton addPointButton, clearButton;
     private JLabel statusLabel, faultLabel;
     private JTextArea faultTextArea;
+    private JPanel droneStatusPanel;
 
     private static Integer MAX_WIDTH = 2000;
     private static Integer MAX_HEIGHT = 1500;
+
+    private ConcurrentHashMap<String, DroneSubsystem.Drone.droneState> droneStates = new ConcurrentHashMap<>();
 
 
     public GUI() {
@@ -55,8 +58,12 @@ public class GUI extends JFrame {
         //SPACER
         gbc.gridy = 1;
         gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        controlPanel.add(new JPanel(), gbc); // just an empty spacer panel
+        gbc.fill = GridBagConstraints.BOTH;
+        droneStatusPanel = new JPanel();
+        droneStatusPanel.setLayout(new BoxLayout(droneStatusPanel, BoxLayout.Y_AXIS));
+        JScrollPane droneScrollPane = new JScrollPane(droneStatusPanel);
+        droneScrollPane.setPreferredSize(new Dimension(200, 300));
+        controlPanel.add(droneScrollPane, gbc);
 
         //FAULT LABEL
         gbc.gridy = 2;
@@ -89,6 +96,33 @@ public class GUI extends JFrame {
         faultTextArea.append("Fault Handled\n");
     }
 
+    private void refreshDroneStatusDisplay() {
+        droneStatusPanel.removeAll(); // Clear existing entries
+
+        for (String id : mapPanel.droneLocations.keySet()) {
+            Color c = mapPanel.droneColors.get(id);
+            DroneSubsystem.Drone.droneState state = droneStates.getOrDefault(id, DroneSubsystem.Drone.droneState.IDLE);
+            String status = state.toString();
+
+            JPanel droneRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+            JLabel colorBox = new JLabel("  ");
+            colorBox.setOpaque(true);
+            colorBox.setBackground(c);
+            colorBox.setPreferredSize(new Dimension(15, 15));
+
+            JLabel info = new JLabel(id + ": " + status);
+
+            droneRow.add(colorBox);
+            droneRow.add(Box.createHorizontalStrut(5));
+            droneRow.add(info);
+
+            droneStatusPanel.add(droneRow);
+        }
+
+        droneStatusPanel.revalidate();
+        droneStatusPanel.repaint();
+    }
 
     public void updateDimensions(List<Zone> zoneList) {
         for(Zone z : zoneList){
@@ -104,9 +138,10 @@ public class GUI extends JFrame {
         mapPanel.repaint();
     }
 
-    public void updateDrone(String id, int x, int y) {
+    public void updateDrone(String id, int x, int y, DroneSubsystem.Drone.droneState d) {
         mapPanel.updateDroneLocation(id, x, y);
-
+        droneStates.put(id, d);
+        refreshDroneStatusDisplay();
     }
 
     // Custom panel for drawing the map

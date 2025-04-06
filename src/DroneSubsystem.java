@@ -119,7 +119,7 @@ public class DroneSubsystem {
             Drone drone = new Drone(id, i+1, this, (5000 + (i+1)));
             //Add drones to the List (drones at the base, idle)
             droneList.add(drone);
-            gui.updateDrone(id, 0, 0);
+            gui.updateDrone(id, 0, 0, drone.state);
 
             //Start the threads
             Thread d = new Thread(drone);
@@ -155,6 +155,7 @@ public class DroneSubsystem {
                         newEvent = new FireEvent(time, zoneID, type, severity, fault, zone);
                         System.out.println("\nDrone Subsystem received event from Scheduler: " + newEvent + "\n");
                         if (newEvent.getFault().equals("Packet Loss/Corrupted Messages")) {
+                            gui.displayFault(newEvent.getFault());
                             throw new DroneNetworkFailure("Bad Event message..");
                         }
                         assignDrone(receiveString);
@@ -171,6 +172,7 @@ public class DroneSubsystem {
                     DatagramPacket denyPacket = new DatagramPacket(denyMsg, 6, InetAddress.getLocalHost(), 6002);
                     //Send to the scheduler that the task is accepted
                     subsystemSocket.send(denyPacket);
+                    gui.displayFaultReset();
                 }
             } catch (IOException | InterruptedException e) {
 
@@ -269,6 +271,14 @@ public class DroneSubsystem {
      */
     public ArrayList<Drone> getDroneList() {
         return droneList;
+    }
+    /**
+     * Get the number of the drones in the program
+     *
+     * @return number of drones
+     */
+    public int getDroneNum() {
+        return numberOfDrones;
     }
 
     /**
@@ -542,11 +552,12 @@ public class DroneSubsystem {
                     x = coords[0];
                     y = coords[1];
                     System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
-                    gui.updateDrone(DroneID, x, y);
+                    gui.updateDrone(DroneID, x, y, state);
                     Thread.sleep(500);
                 }
 
                 if (currentEvent.getFault().equals("Drone Stuck")) {
+                    gui.displayFault(currentEvent.getFault());
                     throw new DroneStuck(DroneID + " is stuck. Returning and reassigning event");
                 }
 
@@ -560,6 +571,7 @@ public class DroneSubsystem {
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
                 sendEventToDroneSubsystem(currentEvent);
+                gui.displayFaultReset();
             }
         }
 
@@ -710,7 +722,7 @@ public class DroneSubsystem {
                 y = coords[1];
                 System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
 
-                gui.updateDrone(DroneID, x, y);
+                gui.updateDrone(DroneID, x, y, state);
                 Thread.sleep(500);
             }
 

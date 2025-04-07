@@ -20,7 +20,7 @@ class DroneSubsystemTest {
     @AfterEach
     void takeDown() throws InterruptedException {
         droneSubsystem.TESTING_closeSockets();
-        Thread.sleep(100);
+        Thread.sleep(250);
     }
 
     @Test

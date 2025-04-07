@@ -79,18 +79,6 @@ public class GUI extends JFrame {
         gbc.weighty = 0.3;
         controlPanel.add(scrollPane, gbc);
 
-        JButton getLogButton = new JButton("Get Log");
-        getLogButton.addActionListener(e -> {
-            getLogPressed = true;
-        });
-
-        gbc.gridx = 0; // Column position
-        gbc.gridy = 4; // Row position
-        gbc.anchor = GridBagConstraints.NORTHEAST; // Anchor to top right
-        gbc.insets = new Insets(10, 10, 10, 10); // Padding
-
-        controlPanel.add(getLogButton, gbc);
-
 
         mainPanel.add(controlPanel, BorderLayout.EAST);
         add(mainPanel);

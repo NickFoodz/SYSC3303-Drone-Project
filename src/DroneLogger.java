@@ -10,7 +10,7 @@ public class DroneLogger {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
     private static String getLogFilePath(int droneNum) {
-        return "logs/drone" + droneNum + "_logs.txt";
+        return "drone" + droneNum + "_logs.txt";
     }
 
     public static void clearLogFile(int droneNum) {

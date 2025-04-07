@@ -83,6 +83,8 @@ Bryson Kushner:
 Iteration 5:
 Thomas Imbert
 - GUI and tests
+- Logging and metric
+- Agent tanks
 
 Elton Kong
 - Sequence diagram

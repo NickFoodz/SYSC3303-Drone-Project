@@ -127,6 +127,7 @@ public class DroneSubsystem {
             //Start the threads
             Thread d = new Thread(drone);
             d.start();
+            DroneLogger.clearLogFile(i+1);
         }
     }
 
@@ -183,22 +184,6 @@ public class DroneSubsystem {
         }
     }
 
-
-//    /**
-//     * Assign a drone an event given by the scheduler, and remove from the list of available drones
-//     *
-//     * @throws InterruptedException
-//     */
-//    public void assignDrone(FireEvent newEvent) throws InterruptedException {
-//        droneList.get(index).startEvent(newEvent);
-//        droneList.remove(index);
-//        index++;
-//        //change to 2 if 3 drones
-//        //Index is meant to cycle which drones get assigned which tasks
-//        if (index % 2 == 0) {
-//            index = 0;
-//        }
-//    }
 
     /**
      * Assign a drone an event given by the scheduler, and remove from the list of available drones
@@ -362,6 +347,7 @@ public class DroneSubsystem {
         private double slope;
         private double y_intercept;
         private boolean dir; // for calculating coordinates: true is positive, false is negative
+        private DroneLogger droneLogger;
 
         //agent tank
         private int tank;
@@ -387,6 +373,7 @@ public class DroneSubsystem {
             tank = TANK_MAX;
             log = new ArrayList<>();
             log.add("IDLE");
+            droneLogger = new DroneLogger();
 
             eventQueue = new LinkedList<>();
             try {
@@ -533,6 +520,7 @@ public class DroneSubsystem {
          */
         private void enRoute() throws InterruptedException {
             try {
+                DroneLogger.logEvent("Departing to Zone " + currentEvent.getZone(), droneNum);
                 int[] dest = currentEvent.getZone().calculateCenter();
                 destX = dest[0];
                 destY = dest[1];
@@ -647,6 +635,8 @@ public class DroneSubsystem {
          */
         private void deployAgent() throws InterruptedException {
             try {
+                DroneLogger.logEvent("Arrived at Zone " + currentEvent.getZone(), droneNum);
+
                 state = droneState.DEPLOYINGAGENT; //Change state
                 log.add("DEPLOYINGAGENT");
                 sendStatus();
@@ -656,11 +646,14 @@ public class DroneSubsystem {
                     gui.displayFault(currentEvent.getFault());
                     throw new DroneNozzleStuck(DroneID + "'s Nozzle is stuck. Disabling");
                 }
+                DroneLogger.logEvent("Beginning to deploy agent", droneNum);
 
                 int agentUsed = putOutFire(currentEvent);
                 System.out.println(DroneID + " at Zone " + currentEvent.getZoneID() + ", deployed " + agentUsed + "L of agent");
 
                 Thread.sleep((agentUsed / 10) * 1000L);
+                DroneLogger.logEvent("Deployed " + agentUsed + "L Agent", droneNum);
+
                 //Go to next state
                 if(currentEvent.getNeededToPutOut() != 0){
                     System.out.println(DroneID + " Should be handling this event next " + currentEvent);
@@ -711,6 +704,8 @@ public class DroneSubsystem {
          * Method that happens when the drone is in the RETURNING state, returns the drone to the IDLE state
          */
         private synchronized void returnToBase() throws InterruptedException {
+            DroneLogger.logEvent("Departing to Base at (0,0)" , droneNum);
+
             state = droneState.RETURNING;
             log.add("RETURNING");
             sendStatus();
@@ -736,6 +731,8 @@ public class DroneSubsystem {
             state = droneState.IDLE;
             log.add("IDLE");
             gui.updateDrone(DroneID, state);
+            DroneLogger.logEvent("Arrived at Base (0,0)", droneNum);
+
             //sendStatus();
         }
 

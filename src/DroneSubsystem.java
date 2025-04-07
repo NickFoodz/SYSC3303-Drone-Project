@@ -217,6 +217,7 @@ public class DroneSubsystem {
 
         // Check if the event is along the route for each drone
         for (Drone drone : masterDroneList) {
+            System.out.println("\nCheck event reroute: " + drone.passZone(newEvent.getZone()));
             if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
                 // Reassign previous currentEvent to the drone's eventQueue
                 FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
@@ -628,8 +629,6 @@ public class DroneSubsystem {
                 double rightY = (slope * z.getEndX()) + y_intercept;
                 double topX = (z.getStartY() - y_intercept) / slope;
                 double bottomX = (z.getEndY() - y_intercept) / slope;
-
-
 
                 // check if it is within path and intersects the zone
                 if ((leftY >= Math.min(x, destX) && leftY <= Math.max(x, destX) && leftY >= z.getStartX() && leftY <= z.getEndX()) ||

@@ -3,11 +3,8 @@ import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 import java.net.*;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * TODO:
@@ -25,7 +22,7 @@ public class DroneSubsystem {
     private String name;
     private String zoneFilePath = "Sample_zone_file.csv"; //File path to the .csv
     private final int schedulerPort = 6001;
-    private final ArrayList<Drone> droneList;
+    private final List<Drone> droneList;
     private final ArrayList<Drone> masterDroneList;
     FireEvent current;
     private int DroneSubsystemPort = 5000;
@@ -46,7 +43,8 @@ public class DroneSubsystem {
         this.name = name;
 
         //droneState state = droneState.IDLE; //Starting state is idle
-        droneList = new ArrayList<>();
+//        droneList = new ArrayList<>();
+        droneList = Collections.synchronizedList(new ArrayList<Drone>());
         masterDroneList = new ArrayList<>();
         current = null;
         index = 0;
@@ -195,17 +193,16 @@ public class DroneSubsystem {
 
         // Find the queue length of the drone with the least events
         int lowestNumEvents = 0;
-        if (!masterDroneList.isEmpty()) lowestNumEvents = masterDroneList.get(0).eventQueue.size();
-        for (Drone drone : masterDroneList) {
+        if (!droneList.isEmpty()) lowestNumEvents = droneList.get(0).eventQueue.size();
+        for (Drone drone : droneList) {
             if (drone.eventQueue.size() < lowestNumEvents) lowestNumEvents = drone.eventQueue.size();
         }
-
         // Check if the event is along the route for each drone
-        for (Drone drone : masterDroneList) {
-            if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
+        for (Drone drone : droneList) {
+            if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() < lowestNumEvents + 2){
                 // Reassign previous currentEvent to the drone's eventQueue
-                FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
-                drone.eventQueue.addLast(prevcurrentEvent);
+//                FireEvent prevcurrentEvent = drone.currentEvent;
+                drone.eventQueue.addLast(drone.currentEvent);
 
                 // Assign the new event as the currentEvent
                 drone.currentEvent = newEvent;
@@ -257,7 +254,7 @@ public class DroneSubsystem {
      *
      * @return the drone list
      */
-    public ArrayList<Drone> getDroneList() {
+    public List<Drone> getDroneList() {
         return droneList;
     }
     /**
@@ -509,8 +506,8 @@ public class DroneSubsystem {
          * @throws InterruptedException
          */
         private void fightFire() throws InterruptedException {
-            enRoute(); //State 2 from idle, carries into next states, beginning the state machine
             returnDroneToList(this);
+            enRoute(); //State 2 from idle, carries into next states, beginning the state machine
         }
 
         /**
@@ -542,7 +539,7 @@ public class DroneSubsystem {
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
                     y = coords[1];
-                    System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
+//                    System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
                     gui.updateDrone(DroneID, x, y, state);
                     Thread.sleep(500);
                 }

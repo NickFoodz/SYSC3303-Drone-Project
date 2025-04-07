@@ -154,7 +154,7 @@ class DroneSubsystemTest {
         droneSubsystem.assignDrone(fireEvent1.summarizeEvent());
         Thread.sleep(5000);
         droneSubsystem.assignDrone(fireEvent2.summarizeEvent());
-
+        Thread.sleep(40000);
         System.out.println("\nLOG: " + drone.getLog());
 
 

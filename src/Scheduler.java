@@ -254,7 +254,7 @@ public class Scheduler {
                     System.out.println("No pending tasks to send\n");
                 }
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1000);
                     System.out.println("Waiting to send task\n");
 
                 } catch (InterruptedException e) {}

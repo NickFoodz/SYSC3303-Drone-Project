@@ -209,7 +209,7 @@ public class GUI extends JFrame {
                 droneLocations.replace(id, newCoords);
             }
             droneColors.computeIfAbsent(id, k -> getRandomColor());
-            System.out.printf("print new location of %s: (%d, %d)\n", id, x, y);
+//            System.out.printf("print new location of %s: (%d, %d)\n", id, x, y);
 
             repaint();
         }

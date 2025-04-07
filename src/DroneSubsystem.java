@@ -217,7 +217,7 @@ public class DroneSubsystem {
 
         // Check if the event is along the route for each drone
         for (Drone drone : masterDroneList) {
-            System.out.println("\nCheck event reroute: " + drone.passZone(newEvent.getZone()));
+//            System.out.println("\nCheck event reroute: " + drone.passZone(newEvent.getZone()));
             if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
                 // Reassign previous currentEvent to the drone's eventQueue
                 FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
@@ -555,7 +555,7 @@ public class DroneSubsystem {
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
                     y = coords[1];
-                    System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
+//                    System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
                     gui.updateDrone(DroneID, x, y, state);
                     Thread.sleep(500);
                 }
@@ -725,7 +725,7 @@ public class DroneSubsystem {
                 int[] coords = calculateNewCoordinates();
                 x = coords[0];
                 y = coords[1];
-                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
+//                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
 
                 gui.updateDrone(DroneID, x, y, state);
                 Thread.sleep(500);

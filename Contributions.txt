@@ -79,3 +79,23 @@ Hanyoung Chung (John)
 Bryson Kushner:
 - Fault Handling
 - Class UML
+
+Iteration 5:
+Thomas Imbert
+- GUI and tests
+
+Elton Kong
+- Sequence diagram
+- Implementing drone interrupt method, GUI
+- Code Review and documentation review
+
+Nick Fuda
+- Code review and debug
+- Timing Diagrams and Report
+
+Hanyoung Chung (John)
+- Code review, debugging, test classes and test cases
+
+Bryson Kushner:
+- Interrupt event handling
+- Debug and code review

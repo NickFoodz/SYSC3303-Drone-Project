@@ -12,7 +12,6 @@ public class FireEvent {
     private Zone zone;
     private int neededToPutOut;
 
-
     /**
      * Constructor for FireEvent, usually information comes from the FireIncidentSubsystem
      * @param time time as a String
@@ -64,6 +63,26 @@ public class FireEvent {
                 break;
         }
         return waterToUse;
+    }
+
+    /**
+     * Change severity into an integer
+     * @return
+     */
+    public int getSeverityLevel() {
+        int lvl = -1;
+        switch (severity) {
+            case ("High"):
+                lvl = 2;
+                break;
+            case ("Moderate"):
+                lvl = 1;
+                break;
+            case ("Low"):
+                lvl = 0;
+                break;
+        }
+        return lvl;
     }
 
     /**

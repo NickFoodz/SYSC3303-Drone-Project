@@ -44,7 +44,7 @@ public class DroneSubsystem {
 
         //droneState state = droneState.IDLE; //Starting state is idle
 //        droneList = new ArrayList<>();
-        droneList = Collections.synchronizedList(new ArrayList<Drone>());
+        droneList = Collections.synchronizedList(new ArrayList<>());
         masterDroneList = new ArrayList<>();
         current = null;
         index = 0;
@@ -200,9 +200,19 @@ public class DroneSubsystem {
         // Check if the event is along the route for each drone
         for (Drone drone : droneList) {
             if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() < lowestNumEvents + 2){
+
+                // skip if drone has a higher severity event underway
+                if (drone.currentEvent != null && drone.currentEvent.getSeverityLevel() > (newEvent.getSeverityLevel())) {
+                    continue;
+                }
+
                 // Reassign previous currentEvent to the drone's eventQueue
-//                FireEvent prevcurrentEvent = drone.currentEvent;
-                drone.eventQueue.addLast(drone.currentEvent);
+                if (drone.currentEvent != null && drone.currentEvent.getSeverityLevel() == (newEvent.getSeverityLevel()))
+                {
+                    drone.eventQueue.addFirst(drone.currentEvent);
+                } else {
+                    drone.eventQueue.addLast(drone.currentEvent);
+                }
 
                 // Assign the new event as the currentEvent
                 drone.currentEvent = newEvent;
@@ -343,7 +353,7 @@ public class DroneSubsystem {
         private double travelTime;
         private double slope;
         private double y_intercept;
-        private boolean dir; // for calculating coordinates: true is positive, false is negative
+        private boolean dir; // for calculating coordinates: true upwards, false is downwards
         private DroneLogger droneLogger;
 
         //agent tank
@@ -563,6 +573,11 @@ public class DroneSubsystem {
             }
         }
 
+        /**
+         * Get path and the travel time taken
+         *
+         * @return time taken by drone in seconds
+         */
         private double methodToCalculateTravelTime() {
             double dist = Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2));
             slope = (double) (destY - y) / (destX - x);
@@ -586,6 +601,11 @@ public class DroneSubsystem {
             return Math.ceil(dist / speed);
         }
 
+        /**
+         * Calculates new coordinates based on the drone's path
+         *
+         * @return x, y coordinates within an array
+         */
         private int[] calculateNewCoordinates() {
             // check for overshooting
             if (Math.sqrt(Math.pow((destY - y),2) + Math.pow((destX - x), 2)) <= speed) {
@@ -606,6 +626,13 @@ public class DroneSubsystem {
             return coords;
         }
 
+
+        /**
+         * Checks if drone's path intersects with a zone
+         *
+         * @param z zone that will be checked
+         * @return true if the drone intersects, false otherwise
+         */
         private boolean passZone(Zone z) {
             if (state.equals(droneState.ENROUTE)) {
                 // y = mx + b
@@ -684,6 +711,11 @@ public class DroneSubsystem {
             }
         }
 
+        /**
+         * Send FireEvent back to the DroneSubsystem
+         *
+         * @param currentEvent the event with the fire
+         */
         private void sendEventToDroneSubsystem(FireEvent currentEvent){
             byte[] outData = new byte[100];
             String eventString = currentEvent.summarizeEvent();
@@ -716,7 +748,7 @@ public class DroneSubsystem {
                 int[] coords = calculateNewCoordinates();
                 x = coords[0];
                 y = coords[1];
-                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
+//                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
 
                 gui.updateDrone(DroneID, x, y, state);
                 Thread.sleep(500);
@@ -727,6 +759,7 @@ public class DroneSubsystem {
             tank = TANK_MAX;
             state = droneState.IDLE;
             log.add("IDLE");
+            currentEvent = null;
             gui.updateDrone(DroneID, state);
             DroneLogger.logEvent("Arrived at Base (0,0)", droneNum);
 

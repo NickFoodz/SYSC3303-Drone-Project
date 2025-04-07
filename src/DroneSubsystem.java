@@ -3,8 +3,11 @@ import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
 import java.net.*;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * TODO:
@@ -22,7 +25,7 @@ public class DroneSubsystem {
     private String name;
     private String zoneFilePath = "Sample_zone_file.csv"; //File path to the .csv
     private final int schedulerPort = 6001;
-    private final List<Drone> droneList;
+    private final ArrayList<Drone> droneList;
     private final ArrayList<Drone> masterDroneList;
     FireEvent current;
     private int DroneSubsystemPort = 5000;
@@ -43,8 +46,7 @@ public class DroneSubsystem {
         this.name = name;
 
         //droneState state = droneState.IDLE; //Starting state is idle
-//        droneList = new ArrayList<>();
-        droneList = Collections.synchronizedList(new ArrayList<Drone>());
+        droneList = new ArrayList<>();
         masterDroneList = new ArrayList<>();
         current = null;
         index = 0;
@@ -154,7 +156,8 @@ public class DroneSubsystem {
                         String severity = info[3];
                         String fault = info[4];
                         Zone zone = getZone(zoneID);
-                        newEvent = new FireEvent(time, zoneID, type, severity, fault, zone);
+                        int agentNeeded = Integer.parseInt(info[5]);
+                        newEvent = new FireEvent(time, zoneID, type, severity, fault, zone, agentNeeded);
                         System.out.println("\nDrone Subsystem received event from Scheduler: " + newEvent + "\n");
                         if (newEvent.getFault().equals("Packet Loss/Corrupted Messages")) {
                             gui.displayFault(newEvent.getFault());
@@ -197,12 +200,13 @@ public class DroneSubsystem {
         for (Drone drone : droneList) {
             if (drone.eventQueue.size() < lowestNumEvents) lowestNumEvents = drone.eventQueue.size();
         }
+
         // Check if the event is along the route for each drone
         for (Drone drone : droneList) {
-            if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() < lowestNumEvents + 2){
+            if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
                 // Reassign previous currentEvent to the drone's eventQueue
-//                FireEvent prevcurrentEvent = drone.currentEvent;
-                drone.eventQueue.addLast(drone.currentEvent);
+                FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
+                drone.eventQueue.addLast(prevcurrentEvent);
 
                 // Assign the new event as the currentEvent
                 drone.currentEvent = newEvent;
@@ -254,7 +258,7 @@ public class DroneSubsystem {
      *
      * @return the drone list
      */
-    public List<Drone> getDroneList() {
+    public ArrayList<Drone> getDroneList() {
         return droneList;
     }
     /**
@@ -506,8 +510,8 @@ public class DroneSubsystem {
          * @throws InterruptedException
          */
         private void fightFire() throws InterruptedException {
-            returnDroneToList(this);
             enRoute(); //State 2 from idle, carries into next states, beginning the state machine
+            returnDroneToList(this);
         }
 
         /**
@@ -529,12 +533,12 @@ public class DroneSubsystem {
                 travelTime = methodToCalculateTravelTime();
                 while (x != destX && y != destY) {
                     // Check if event has been reassigned
-                    if (currentEventChanged){
-                        currentEventChanged = false;
-                        // Recall enRoute() for the new currentEvent
-                        enRoute();
-                        return;
-                    }
+//                    if (currentEventChanged){
+//                        currentEventChanged = false;
+//                        // Recall enRoute() for the new currentEvent
+//                        enRoute();
+//                        return;
+//                    }
 
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
@@ -616,9 +620,9 @@ public class DroneSubsystem {
 
                 // check if it is within path and intersects the zone
                 if ((leftY >= Math.min(y, destY) && leftY <= Math.max(y, destY) && leftY >= z.getStartY() && leftY <= z.getEndY()) ||
-                    (rightY >= Math.min(y, destY) && rightY <= Math.max(y, destY) && rightY >= z.getStartY() && rightY <= z.getEndY()) ||
-                    (topX >= Math.min(x, destX) && topX <= Math.max(x, destX) && topX >= z.getStartX() && topX <= z.getEndX()) ||
-                    (bottomX >= Math.min(x, destX) && bottomX <= Math.max(x, destX) && bottomX >= z.getStartX() && bottomX <= z.getEndX())) {
+                        (rightY >= Math.min(y, destY) && rightY <= Math.max(y, destY) && rightY >= z.getStartY() && rightY <= z.getEndY()) ||
+                        (topX >= Math.min(x, destX) && topX <= Math.max(x, destX) && topX >= z.getStartX() && topX <= z.getEndX()) ||
+                        (bottomX >= Math.min(x, destX) && bottomX <= Math.max(x, destX) && bottomX >= z.getStartX() && bottomX <= z.getEndX())) {
                     return true;
                 }
             }
@@ -651,6 +655,7 @@ public class DroneSubsystem {
                 Thread.sleep((agentUsed / 10) * 1000L);
                 DroneLogger.logEvent("Deployed " + agentUsed + "L Agent", droneNum);
 
+
                 //Go to next state
                 if(currentEvent.getNeededToPutOut() != 0){
                     System.out.println(DroneID + " Should be handling this event next " + currentEvent);
@@ -672,7 +677,7 @@ public class DroneSubsystem {
                 sendStatus();
                 gui.updateDrone(DroneID, state);
                 //for(String n : log){
-                   // System.out.println(n);
+                // System.out.println(n);
                 //}
 
                 //RE-ENTER THE EVENT TO BE PROCESSED
@@ -716,7 +721,7 @@ public class DroneSubsystem {
                 int[] coords = calculateNewCoordinates();
                 x = coords[0];
                 y = coords[1];
-                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
+//                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
 
                 gui.updateDrone(DroneID, x, y, state);
                 Thread.sleep(500);

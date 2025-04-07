@@ -2,12 +2,18 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class DroneLogger {
     private static final String BASE_LOG_PATH = "";
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+    private static String fireStartingTimestamp;
+    private static String fireEndingTimestamp;
+    private static long millis;
+
 
     private static String getLogFilePath(int droneNum) {
         return "drone" + droneNum + "_logs.txt";
@@ -31,6 +37,19 @@ public class DroneLogger {
         String logEntry;
         String logFilePath = getLogFilePath(droneNum);
 
+        if(event.contains("Departing to Zone")){
+            fireStartingTimestamp = LocalDateTime.now().format(formatter);
+        }
+        if(event.contains("Deployed")){
+            fireEndingTimestamp = LocalDateTime.now().format(formatter);
+
+            LocalTime startTime = LocalTime.parse(fireStartingTimestamp, formatter);
+            LocalTime endTime = LocalTime.parse(fireEndingTimestamp, formatter);
+
+            // Calculate the duration
+            Duration duration = Duration.between(startTime, endTime);
+            millis = duration.toMillis();
+        }
 
         String timestamp = LocalDateTime.now().format(formatter);
         logEntry = String.format("[%s] %s%n", timestamp, event);
@@ -38,7 +57,13 @@ public class DroneLogger {
 
         try (FileWriter writer = new FileWriter(logFilePath, true)) {
             writer.write(logEntry);
+            if(millis != 0){
+                writer.write("Fire put out in " + millis + " ms\n");
+                millis = 0;
+            }
         } catch (IOException e) {
         }
     }
+
+
 }

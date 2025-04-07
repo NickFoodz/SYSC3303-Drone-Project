@@ -148,10 +148,11 @@ class DroneSubsystemTest {
         DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);
 
         FireEvent fireEvent1 = new FireEvent("13:00:05",4,"FIRE_DETECTED","Low", "null");
-        FireEvent fireEvent2 = new FireEvent("13:00:06",1,"FIRE_DETECTED","Low", "null");
+        FireEvent fireEvent2 = new FireEvent("13:00:06",3,"FIRE_DETECTED","Low", "null");
 
 
         droneSubsystem.assignDrone(fireEvent1.summarizeEvent());
+        Thread.sleep(5000);
         droneSubsystem.assignDrone(fireEvent2.summarizeEvent());
 
         System.out.println("\nLOG: " + drone.getLog());

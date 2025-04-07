@@ -95,6 +95,21 @@ class DroneSubsystemTest {
     }
 
     @Test
+    void testAgentUsed() throws InterruptedException {
+        droneSubsystem.initializeDrones();
+        DroneSubsystem.Drone drone2 = droneSubsystem.getDroneList().get(1);
+
+        assertEquals(DroneSubsystem.Drone.droneState.IDLE, drone2.getState(), "drone starts in state IDLE");
+
+        Zone zone2 = new Zone(3, 0, 600, 1300, 1500);
+        FireEvent faultEvent2 = new FireEvent("14:00:00", 2, "FIRE_DETECTED", "Low", "null", zone2);
+
+        drone2.startEvent(faultEvent2);
+
+        assertEquals(10, drone2.getTotalAgentSprayed(), "Shouldve used 10L of agent");
+    }
+
+    @Test
     void testDroneStateChange() throws InterruptedException {
         droneSubsystem.initializeDrones();
         DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);

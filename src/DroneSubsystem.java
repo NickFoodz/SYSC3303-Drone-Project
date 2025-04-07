@@ -359,6 +359,7 @@ public class DroneSubsystem {
         private double y_intercept;
         private boolean dir; // for calculating coordinates: true upwards, false is downwards
         private DroneLogger droneLogger;
+        private int totalAgentSprayed;
 
         //agent tank
         private int tank;
@@ -387,6 +388,7 @@ public class DroneSubsystem {
             droneLogger = new DroneLogger();
 
             eventQueue = new LinkedList<>();
+            totalAgentSprayed = 0;
             try {
                 droneSocket = new DatagramSocket(socketNumber);
             } catch (SocketException e) {
@@ -542,13 +544,13 @@ public class DroneSubsystem {
                 System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
                 travelTime = methodToCalculateTravelTime();
                 while (x != destX && y != destY) {
-                    // Check if event has been reassigned
-//                    if (currentEventChanged){
-//                        currentEventChanged = false;
-//                        // Recall enRoute() for the new currentEvent
-//                        enRoute();
-//                        return;
-//                    }
+//                     Check if event has been reassigned
+                    if (currentEventChanged){
+                        currentEventChanged = false;
+                        // Recall enRoute() for the new currentEvent
+                        enRoute();
+                        return;
+                    }
 
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
@@ -682,7 +684,7 @@ public class DroneSubsystem {
                 Thread.sleep((agentUsed / 10) * 1000L);
                 DroneLogger.logEvent("Deployed " + agentUsed + "L Agent", droneNum);
 
-
+                totalAgentSprayed += agentUsed;
                 //Go to next state
                 if(currentEvent.getNeededToPutOut() != 0){
                     System.out.println(DroneID + " Should be handling this event next " + currentEvent);
@@ -764,7 +766,7 @@ public class DroneSubsystem {
             tank = TANK_MAX;
             state = droneState.IDLE;
             log.add("IDLE");
-            currentEvent = null;
+//            currentEvent = null;
             gui.updateDrone(DroneID, state);
             DroneLogger.logEvent("Arrived at Base (0,0)", droneNum);
 
@@ -778,6 +780,16 @@ public class DroneSubsystem {
          */
         public String getDroneID() {
             return DroneID;
+        }
+
+
+        /**
+         * Get the total agent sprayed
+         *
+         * @return int total agent sprayed of the drone
+         */
+        public int getTotalAgentSprayed(){
+            return totalAgentSprayed;
         }
 
         /**

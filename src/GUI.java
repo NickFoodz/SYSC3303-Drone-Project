@@ -3,21 +3,19 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GUI extends JFrame {
     private MapPanel mapPanel;
-    private JButton addPointButton, clearButton;
     private JLabel statusLabel, faultLabel;
     private JTextArea faultTextArea;
     private JPanel droneStatusPanel;
 
     private static Integer MAX_WIDTH = 2000;
     private static Integer MAX_HEIGHT = 1500;
+    private boolean getLogPressed = false;
 
     private ConcurrentHashMap<String, DroneSubsystem.Drone.droneState> droneStates = new ConcurrentHashMap<>();
 
@@ -27,13 +25,11 @@ public class GUI extends JFrame {
         //update max width and height if needed
 
 
-        // Set up the frame
         setTitle("Drone Simulation");
         setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Create the main panel with BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -52,7 +48,7 @@ public class GUI extends JFrame {
 
         //TOP LABEL
         gbc.gridy = 0;
-        statusLabel = new JLabel("Drones ready to deploy");
+        statusLabel = new JLabel("Drone List");
         controlPanel.add(statusLabel, gbc);
 
         //SPACER
@@ -83,6 +79,19 @@ public class GUI extends JFrame {
         gbc.weighty = 0.3;
         controlPanel.add(scrollPane, gbc);
 
+        JButton getLogButton = new JButton("Get Log");
+        getLogButton.addActionListener(e -> {
+            getLogPressed = true;
+        });
+
+        gbc.gridx = 0; // Column position
+        gbc.gridy = 4; // Row position
+        gbc.anchor = GridBagConstraints.NORTHEAST; // Anchor to top right
+        gbc.insets = new Insets(10, 10, 10, 10); // Padding
+
+        controlPanel.add(getLogButton, gbc);
+
+
         mainPanel.add(controlPanel, BorderLayout.EAST);
         add(mainPanel);
 
@@ -98,8 +107,11 @@ public class GUI extends JFrame {
 
     private void refreshDroneStatusDisplay() {
         droneStatusPanel.removeAll(); // Clear existing entries
+        droneStatusPanel.removeAll();
+
 
         for (String id : mapPanel.droneLocations.keySet()) {
+
             Color c = mapPanel.droneColors.get(id);
             DroneSubsystem.Drone.droneState state = droneStates.getOrDefault(id, DroneSubsystem.Drone.droneState.IDLE);
             String status = state.toString();
@@ -147,6 +159,10 @@ public class GUI extends JFrame {
     public void updateDrone(String id, DroneSubsystem.Drone.droneState d){
         droneStates.put(id, d);
         refreshDroneStatusDisplay();
+    }
+
+    public boolean getLogPressed() {
+        return getLogPressed;
     }
 
     // Custom panel for drawing the map
@@ -203,12 +219,11 @@ public class GUI extends JFrame {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
 
-            // Enable anti-aliasing for smoother drawing
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             g2d.setColor(new Color(220, 220, 220));
 
-            // Draw all the lines
+            // Draw all the zone libes
             g2d.setColor(Color.BLUE);
             g2d.setStroke(new BasicStroke(2));
             for (List<Integer> zone : zones) {
@@ -222,7 +237,7 @@ public class GUI extends JFrame {
                 g2d.drawLine(x1, y2, x1, y1);
             }
 
-            // for drones use g2d.fillOval(x, y, width, height)
+            //fill drones
             for (String id : droneLocations.keySet()) {
                 List<Integer> coord = droneLocations.get(id);
                 int x = coord.get(0);

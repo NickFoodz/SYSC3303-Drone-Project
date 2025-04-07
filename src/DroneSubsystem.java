@@ -1,8 +1,6 @@
 
 import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.net.*;
 import java.util.Deque;
@@ -35,6 +33,7 @@ public class DroneSubsystem {
     private int numberOfDrones = 10;
     private List<Zone> allZones;
     private GUI gui;
+    private boolean runSubsystem;
 
 
     /**
@@ -51,6 +50,7 @@ public class DroneSubsystem {
         current = null;
         index = 0;
         allZones = new ArrayList<>();
+        runSubsystem = true;
         try {
             subsystemSocket = new DatagramSocket(DroneSubsystemPort);
             droneSendSocket = new DatagramSocket(DroneSubsystemSendPort);
@@ -134,7 +134,7 @@ public class DroneSubsystem {
      * Main running method, which receives a packet, converts it into an event and assigns a drone
      */
     public void manageDrones() {
-        while (true) {
+        while (runSubsystem) {
             //Create buffer and receiving packet
             byte[] receiveData = new byte[100];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -180,25 +180,24 @@ public class DroneSubsystem {
             } catch (IOException | InterruptedException e) {
 
             }
+            if (gui.getLogPressed()) {
+                runSubsystem = false;
+                writeDroneLogsToFile();
+            }
         }
     }
-
-
-//    /**
-//     * Assign a drone an event given by the scheduler, and remove from the list of available drones
-//     *
-//     * @throws InterruptedException
-//     */
-//    public void assignDrone(FireEvent newEvent) throws InterruptedException {
-//        droneList.get(index).startEvent(newEvent);
-//        droneList.remove(index);
-//        index++;
-//        //change to 2 if 3 drones
-//        //Index is meant to cycle which drones get assigned which tasks
-//        if (index % 2 == 0) {
-//            index = 0;
-//        }
-//    }
+    public void writeDroneLogsToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("metricsLog.txt"))) {
+            for (Drone d : droneList) {
+                writer.write("Drone #" + d.droneNum + " Log:\n");
+                for (String entry : d.iter5Log) {
+                    writer.write(entry + "\n");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error writing drone logs: " + e.getMessage());
+        }
+    }
 
     /**
      * Assign a drone an event given by the scheduler, and remove from the list of available drones
@@ -372,6 +371,9 @@ public class DroneSubsystem {
         private DatagramSocket droneSocket;
         private ArrayList<String> log;
 
+        //iter5 logging
+        public ArrayList<String> iter5Log;
+
         //fireEvent Queue
         private Deque<FireEvent> eventQueue;
 
@@ -388,6 +390,8 @@ public class DroneSubsystem {
             tank = TANK_MAX;
             log = new ArrayList<>();
             log.add("IDLE");
+
+            iter5Log = new ArrayList<>();
 
             eventQueue = new LinkedList<>();
             try {
@@ -534,6 +538,7 @@ public class DroneSubsystem {
          */
         private void enRoute() throws InterruptedException {
             try {
+                logTime("Drone started heading to " + currentEvent.getZone());
                 int[] dest = currentEvent.getZone().calculateCenter();
                 destX = dest[0];
                 destY = dest[1];
@@ -561,11 +566,12 @@ public class DroneSubsystem {
                 }
 
                 if (currentEvent.getFault().equals("Drone Stuck")) {
-                    gui.displayFault(currentEvent.getFault());
+                    gui.displayFault(DroneID + " - " + currentEvent.getFault());
                     throw new DroneStuck(DroneID + " is stuck. Returning and reassigning event");
                 }
 
                 //Go to next state
+                logTime("Drone arrived at " + currentEvent.getZone());
                 deployAgent();
             } catch (DroneStuck d){
                 System.out.println(DroneID + " is stuck. Returning and reassigning event");
@@ -654,14 +660,19 @@ public class DroneSubsystem {
                 System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() + ", attempting to deploy agent");
 
                 if (currentEvent.getFault().equals("Nozzle Jammed")) {
-                    gui.displayFault(currentEvent.getFault());
+                    gui.displayFault(DroneID + " - " + currentEvent.getFault());
                     throw new DroneNozzleStuck(DroneID + "'s Nozzle is stuck. Disabling");
                 }
+
+                logTime("Started dumping agent");
 
                 int agentUsed = putOutFire(currentEvent);
                 System.out.println(DroneID + " at Zone " + currentEvent.getZoneID() + ", deployed " + agentUsed + "L of agent");
 
                 Thread.sleep((agentUsed / 10) * 1000L);
+
+                logTime("Ended dumping " + agentUsed + " of agent");
+
                 //Go to next state
                 if(currentEvent.getNeededToPutOut() != 0){
                     System.out.println(DroneID + " Should be handling this event next " + currentEvent);
@@ -712,6 +723,7 @@ public class DroneSubsystem {
          * Method that happens when the drone is in the RETURNING state, returns the drone to the IDLE state
          */
         private synchronized void returnToBase() throws InterruptedException {
+            logTime("Drone started returning to base");
             state = droneState.RETURNING;
             log.add("RETURNING");
             sendStatus();
@@ -737,7 +749,14 @@ public class DroneSubsystem {
             state = droneState.IDLE;
             log.add("IDLE");
             gui.updateDrone(DroneID, state);
+            logTime("Drone returned to base");
+
             //sendStatus();
+        }
+
+        private void logTime(String msg){
+            String timestamp = java.time.LocalTime.now().toString();
+            iter5Log.add("[" + timestamp + "] " + msg);
         }
 
         /**
@@ -748,6 +767,7 @@ public class DroneSubsystem {
         public String getDroneID() {
             return DroneID;
         }
+
 
         /**
          * Get the state of the Drone

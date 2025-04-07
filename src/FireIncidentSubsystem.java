@@ -27,7 +27,7 @@ public class FireIncidentSubsystem {
     public FireIncidentSubsystem() {
         EOF = false;
         allEvents = new ArrayList<>();
-        simulation = new Simulation(1, this);
+        simulation = new Simulation(4, this);
         try {
             FISSocket = new DatagramSocket(5999);
         } catch (SocketException e) {}
@@ -61,19 +61,6 @@ public class FireIncidentSubsystem {
             //While there is data on the lines, create a new fire event and add it to the scheduler
             while ((line = reader.readLine()) != null) {
                 String[] info = line.split(",");
-//                if (info.length == 4) {
-//                    String time = info[0];
-//                    int zoneID = Integer.parseInt(info[1]);
-//                    String type = info[2];
-//                    String severity = info[3];
-//                    FireEvent event = new FireEvent(time, zoneID, type, severity);
-//
-//                    //Checks the format of the event for the drone in UDP
-//                    //System.out.println(event.summarizeEvent());
-//
-//                    //adds all events to a master AllEvents List
-//                    allEvents.add(event);
-//                }
                 if(info.length == 5){
                     String time = info[0];
                     int zoneID = Integer.parseInt(info[1]);

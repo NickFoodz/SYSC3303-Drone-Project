@@ -217,7 +217,6 @@ public class DroneSubsystem {
 
         // Check if the event is along the route for each drone
         for (Drone drone : masterDroneList) {
-            System.out.println("\nCheck event reroute: " + drone.passZone(newEvent.getZone()));
             if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
                 // Reassign previous currentEvent to the drone's eventQueue
                 FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
@@ -631,10 +630,10 @@ public class DroneSubsystem {
                 double bottomX = (z.getEndY() - y_intercept) / slope;
 
                 // check if it is within path and intersects the zone
-                if ((leftY >= Math.min(x, destX) && leftY <= Math.max(x, destX) && leftY >= z.getStartX() && leftY <= z.getEndX()) ||
-                    (rightY >= Math.min(x, destX) && rightY <= Math.max(x, destX) && rightY >= z.getStartX() && rightY <= z.getEndX()) ||
-                    (topX >= Math.min(y, destY) && topX <= Math.max(y, destY) && topX >= z.getStartY() && topX <= z.getEndY()) ||
-                    (bottomX >= Math.min(y, destY) && bottomX <= Math.max(y, destY) && bottomX >= z.getStartY() && bottomX <= z.getEndY())) {
+                if ((leftY >= Math.min(y, destY) && leftY <= Math.max(y, destY) && leftY >= z.getStartY() && leftY <= z.getEndY()) ||
+                    (rightY >= Math.min(y, destY) && rightY <= Math.max(y, destY) && rightY >= z.getStartY() && rightY <= z.getEndY()) ||
+                    (topX >= Math.min(x, destX) && topX <= Math.max(x, destX) && topX >= z.getStartX() && topX <= z.getEndX()) ||
+                    (bottomX >= Math.min(x, destX) && bottomX <= Math.max(x, destX) && bottomX >= z.getStartX() && bottomX <= z.getEndX())) {
                     return true;
                 }
             }

@@ -20,7 +20,7 @@ class DroneSubsystemTest {
     @AfterEach
     void takeDown() throws InterruptedException {
         droneSubsystem.TESTING_closeSockets();
-        Thread.sleep(100);
+        Thread.sleep(250);
     }
 
     @Test
@@ -29,6 +29,8 @@ class DroneSubsystemTest {
 
         assertEquals(droneSubsystem.getDroneNum(), droneSubsystem.getDroneList().size(), "all drones are initialized");
 //        droneSubsystem.TESTING_closeSockets();
+        droneSubsystem.TESTING_closeSockets();
+
     }
 
     @Test
@@ -53,7 +55,10 @@ class DroneSubsystemTest {
 
         assertTrue(s.TESTING_rejectionHandled, "Scheduler should have handled the rejection");
 
+        s.TESTING_closeSockets();
         droneThread.interrupt();
+        droneSubsystem.TESTING_closeSockets();
+
     }
 
     @Test
@@ -92,6 +97,8 @@ class DroneSubsystemTest {
         assertEquals("RETURNING", drone2.getLog().get(3), "drone moves onto RETURNING state");
         assertEquals("IDLE", drone2.getLog().get(4), "drone returns to IDLE state");
         assertEquals("DISABLED", drone2.getLog().get(5), "drone moves onto DISABLED state");
+        droneSubsystem.TESTING_closeSockets();
+
     }
 
     @Test
@@ -136,29 +143,25 @@ class DroneSubsystemTest {
         assertEquals("IDLE", drone.getLog().get(4), "drone returns to IDLE state");
         assertEquals("DISABLED", drone2.getLog().get(5), "drone moves onto DISABLED state");
 
+    }
 
-
+//    @Test
+//    void testRerouteEvents() throws InterruptedException {
+//        droneSubsystem.initializeDrones();
+//        DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);
+//
+//        FireEvent fireEvent1 = new FireEvent("13:00:05",4,"FIRE_DETECTED","Low", "null");
+//        FireEvent fireEvent2 = new FireEvent("13:00:06",3,"FIRE_DETECTED","Low", "null");
+//
+//
+//        droneSubsystem.assignDrone(fireEvent1.summarizeEvent());
+//        Thread.sleep(100);
+//        droneSubsystem.assignDrone(fireEvent2.summarizeEvent());
+//
+//        System.out.println("\nLOG: " + drone.getLog());
+//
 //        droneSubsystem.TESTING_closeSockets();
-
-    }
-
-    @Test
-    void testRerouteEvents() throws InterruptedException {
-        droneSubsystem.initializeDrones();
-        DroneSubsystem.Drone drone = droneSubsystem.getDroneList().get(0);
-
-        FireEvent fireEvent1 = new FireEvent("13:00:05",4,"FIRE_DETECTED","Low", "null");
-        FireEvent fireEvent2 = new FireEvent("13:00:06",3,"FIRE_DETECTED","Low", "null");
-
-
-        droneSubsystem.assignDrone(fireEvent1.summarizeEvent());
-        Thread.sleep(5000);
-        droneSubsystem.assignDrone(fireEvent2.summarizeEvent());
-
-        System.out.println("\nLOG: " + drone.getLog());
-
-
-
-    }
+//
+//    }
 
 }

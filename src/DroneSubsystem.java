@@ -156,7 +156,8 @@ public class DroneSubsystem {
                         String severity = info[3];
                         String fault = info[4];
                         Zone zone = getZone(zoneID);
-                        newEvent = new FireEvent(time, zoneID, type, severity, fault, zone);
+                        int agentNeeded = Integer.parseInt(info[5]);
+                        newEvent = new FireEvent(time, zoneID, type, severity, fault, zone, agentNeeded);
                         System.out.println("\nDrone Subsystem received event from Scheduler: " + newEvent + "\n");
                         if (newEvent.getFault().equals("Packet Loss/Corrupted Messages")) {
                             gui.displayFault(newEvent.getFault());
@@ -195,13 +196,13 @@ public class DroneSubsystem {
 
         // Find the queue length of the drone with the least events
         int lowestNumEvents = 0;
-        if (!masterDroneList.isEmpty()) lowestNumEvents = masterDroneList.get(0).eventQueue.size();
-        for (Drone drone : masterDroneList) {
+        if (!droneList.isEmpty()) lowestNumEvents = droneList.get(0).eventQueue.size();
+        for (Drone drone : droneList) {
             if (drone.eventQueue.size() < lowestNumEvents) lowestNumEvents = drone.eventQueue.size();
         }
 
         // Check if the event is along the route for each drone
-        for (Drone drone : masterDroneList) {
+        for (Drone drone : droneList) {
             if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() <= lowestNumEvents + 2){
                 // Reassign previous currentEvent to the drone's eventQueue
                 FireEvent prevcurrentEvent = convertStringtoFireEvent(drone.currentEvent.summarizeEvent());
@@ -532,12 +533,12 @@ public class DroneSubsystem {
                 travelTime = methodToCalculateTravelTime();
                 while (x != destX && y != destY) {
                     // Check if event has been reassigned
-                    if (currentEventChanged){
-                        currentEventChanged = false;
-                        // Recall enRoute() for the new currentEvent
-                        enRoute();
-                        return;
-                    }
+//                    if (currentEventChanged){
+//                        currentEventChanged = false;
+//                        // Recall enRoute() for the new currentEvent
+//                        enRoute();
+//                        return;
+//                    }
 
                     int[] coords = calculateNewCoordinates();
                     x = coords[0];
@@ -653,6 +654,7 @@ public class DroneSubsystem {
 
                 Thread.sleep((agentUsed / 10) * 1000L);
                 DroneLogger.logEvent("Deployed " + agentUsed + "L Agent", droneNum);
+
 
                 //Go to next state
                 if(currentEvent.getNeededToPutOut() != 0){

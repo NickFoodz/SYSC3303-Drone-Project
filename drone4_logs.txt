@@ -1,0 +1,6 @@
+[12:18:47.195] Departing to Zone Zone with ID: 4
+[12:19:04.058] Arrived at Zone Zone with ID: 4
+[12:19:04.059] Beginning to deploy agent
+[12:19:05.064] Deployed 10L Agent
+Fire put out in 2824 ms
+[12:19:05.065] Departing to Base at (0,0)

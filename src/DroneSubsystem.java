@@ -163,6 +163,10 @@ public class DroneSubsystem {
                             gui.displayFault(newEvent.getFault());
                             throw new DroneNetworkFailure("Bad Event message..");
                         }
+
+                        if(receivePacket.getPort() == 6000){
+                            gui.addFire(zoneID);
+                        }
                         assignDrone(receiveString);
                     }
 
@@ -691,6 +695,8 @@ public class DroneSubsystem {
 //                    eventQueue.addFirst(currentEvent); //legacy; keep for now
                     sendEventToDroneSubsystem(currentEvent);
 
+                } else {
+                    gui.removeFire(currentEvent.getZoneID());
                 }
                 returnToBase();
 

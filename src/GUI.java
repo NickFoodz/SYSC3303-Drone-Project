@@ -86,6 +86,14 @@ public class GUI extends JFrame {
         faultTextArea.append("No Faults Detected\n");
     }
 
+    public void addFire(int zId){
+        mapPanel.changeZoneFire(zId, 1);
+    }
+
+    public void removeFire(int zId){
+        mapPanel.changeZoneFire(zId, -1);
+    }
+
     public void displayFault(String fault){
         faultTextArea.append(fault + "\n");
     }
@@ -133,7 +141,7 @@ public class GUI extends JFrame {
 
     public void addCoords(List<Zone> zoneList) {
         for(Zone z : zoneList){
-            mapPanel.addZone(z.getStartX(), z.getStartY(), z.getEndX(), z.getEndY());
+            mapPanel.addZone(z.getZoneId(), z.getStartX(), z.getStartY(), z.getEndX(), z.getEndY());
         }
         mapPanel.repaint();
     }
@@ -157,6 +165,7 @@ public class GUI extends JFrame {
     private class MapPanel extends JPanel {
         private List<List<Integer>> zones = new ArrayList<>();
         private ConcurrentHashMap<String, List<Integer>> droneLocations = new ConcurrentHashMap<>();
+        private ConcurrentHashMap<Integer, Integer> currentFires = new ConcurrentHashMap<>();
         private ConcurrentHashMap<String, Color> droneColors = new ConcurrentHashMap<>();
         public MapPanel() {
             setBackground(Color.WHITE);
@@ -169,7 +178,7 @@ public class GUI extends JFrame {
             return new Color(r, g, b);
         }
 
-        public void addZone(int x1, int y1, int x2, int y2) {
+        public void addZone(int id , int x1, int y1, int x2, int y2) {
             int width = getWidth();
             int height = getHeight();
 
@@ -182,8 +191,14 @@ public class GUI extends JFrame {
             currZone.add(y1);
             currZone.add(x2);
             currZone.add(y2);
+            currZone.add(id);
+            currentFires.computeIfAbsent(id, v->0);
             zones.add(currZone);
 
+        }
+
+        public void changeZoneFire(int id, int change){
+            currentFires.replace(id, currentFires.get(id)+change);
         }
 
         private synchronized void updateDroneLocation(String id, int x, int y) {
@@ -223,6 +238,18 @@ public class GUI extends JFrame {
                 g2d.drawLine(x2, y1, x2, y2);
                 g2d.drawLine(x2, y2, x1, y2);
                 g2d.drawLine(x1, y2, x1, y1);
+                if(currentFires.get(zone.get(4)) > 0) {
+                    g2d.setColor(Color.decode("#ff2c2c"));
+//                    g2d.setColor(Color.RED);
+                    g2d.fillRect(x1, y1, x2-x1, y2-y1);
+                    g2d.setColor(Color.BLUE);
+                }
+//                if(currentFires.get(zone.get(4)) == 0) {
+//                    g2d.setColor(Color.WHITE);
+//                    g2d.fillRect(x1, y1, x2-x1, y2-y1);
+//                    g2d.setColor(Color.BLUE);
+//                }
+
             }
 
             //fill drones

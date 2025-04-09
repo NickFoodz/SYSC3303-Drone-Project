@@ -93,7 +93,7 @@ public class Scheduler {
                     System.out.println("Received: " + newEvent + " from Fire Incident Subsystem");
                     //Add to the event queue
                     fireEventsStartTimes.put(time, LocalDateTime.now().format(formatter));
-                    SchedulerLogger.logEvent("Received Event", newEvent);
+                    //SchedulerLogger.logEvent("Received Event", newEvent);
                     addEvent(newEvent);
                 }
 
@@ -114,7 +114,7 @@ public class Scheduler {
                     String fault = info[4];
                     FireEvent newEvent = new FireEvent(time, zoneID, type, severity, fault);
 
-                    SchedulerLogger.logEventGivenTimestamp(parts[1], "Event Handled", newEvent);
+                    //SchedulerLogger.logEventGivenTimestamp(parts[1], "Event Handled", newEvent);
 
                     SchedulerLogger.logEventTimeDifference(fireEventsStartTimes.get(time), fireEventEndTime, newEvent);
 

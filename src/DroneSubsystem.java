@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class DroneSubsystem {
     private String name;
-    private String zoneFilePath = "Sample_zone_file.csv"; //File path to the .csv
+    private String zoneFilePath = "Final_zone_file.csv"; //File path to the .csv
     private final int schedulerPort = 6001;
     private final ArrayList<Drone> droneList;
     private final ArrayList<Drone> masterDroneList;

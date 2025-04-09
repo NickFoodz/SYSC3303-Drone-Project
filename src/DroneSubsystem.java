@@ -38,7 +38,8 @@ public class DroneSubsystem {
     private List<Zone> allZones;
     private GUI gui;
 
-
+    private Boolean TESTING_StuckHandled;
+    private Boolean TESTING_NozzleHandled;
 
     /**
      * Constructor for the Drone Subsystem
@@ -54,6 +55,8 @@ public class DroneSubsystem {
         current = null;
         index = 0;
         allZones = new ArrayList<>();
+        TESTING_StuckHandled = false;
+        TESTING_NozzleHandled = false;
         try {
             subsystemSocket = new DatagramSocket(DroneSubsystemPort);
             droneSendSocket = new DatagramSocket(DroneSubsystemSendPort);
@@ -578,6 +581,9 @@ public class DroneSubsystem {
                 //SEND BACK
                 returnToBase();
 
+                //set the value for testing
+                TESTING_StuckHandled = true;
+
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
                 sendEventToDroneSubsystem(currentEvent);
@@ -729,7 +735,8 @@ public class DroneSubsystem {
                 //for(String n : log){
                 // System.out.println(n);
                 //}
-
+                //set the value for testing
+                TESTING_NozzleHandled = true;
                 //RE-ENTER THE EVENT TO BE PROCESSED
                 currentEvent.clearFault();
                 sendEventToDroneSubsystem(currentEvent);
@@ -838,6 +845,13 @@ public class DroneSubsystem {
          */
         public int getDroneYLocation() {
             return y;
+        }
+
+        public boolean getTESTING_NozzleHandled(){
+            return TESTING_NozzleHandled;
+        }
+        public boolean getTESTING_StuckHandled(){
+            return TESTING_StuckHandled;
         }
 
         /**

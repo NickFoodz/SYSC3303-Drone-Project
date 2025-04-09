@@ -27,7 +27,7 @@ public class FireIncidentSubsystem {
     public FireIncidentSubsystem() {
         EOF = false;
         allEvents = new ArrayList<>();
-        simulation = new Simulation(4, this);
+        simulation = new Simulation(0, this);
         try {
             FISSocket = new DatagramSocket(5999);
         } catch (SocketException e) {}

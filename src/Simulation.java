@@ -12,6 +12,11 @@ public class Simulation implements Runnable {
     private boolean running;                                // If the simulation is running or not
     private FireIncidentSubsystem incidentSubsystem;        //FIS
 
+    public Simulation(FireIncidentSubsystem f) {
+        this.simulationSpeed = 0;
+        this.incidentSubsystem = f;
+        running = true;
+    }
     public Simulation(int simSpeed) {
         this.simulationSpeed = simSpeed;
         running = true;

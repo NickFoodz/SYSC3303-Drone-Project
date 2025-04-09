@@ -23,7 +23,8 @@ public class Scheduler {
 
 
 
-    public Boolean TESTING_rejectionHandled;
+    private Boolean TESTING_rejectionHandled;
+
 
     /**
      * Constructor for scheduler class
@@ -212,6 +213,10 @@ public class Scheduler {
      */
     public LinkedList<FireEvent> getEvent() {
         return eventList;
+    }
+
+    public boolean getTESTING_rejectionHandled(){
+        return TESTING_rejectionHandled;
     }
 
 

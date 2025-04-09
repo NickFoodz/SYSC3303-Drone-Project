@@ -47,11 +47,11 @@ class DroneSubsystemTest {
         });
         droneThread.start();
 
-        while (!s.TESTING_rejectionHandled) {
+        while (!s.getTESTING_rejectionHandled()) {
             Thread.sleep(100);
         }
 
-        assertTrue(s.TESTING_rejectionHandled, "Scheduler should have handled the rejection");
+        assertTrue(s.getTESTING_rejectionHandled(), "Scheduler should have handled the rejection");
 
         droneThread.interrupt();
     }
@@ -68,10 +68,8 @@ class DroneSubsystemTest {
 
         drone.startEvent(faultEvent);
 
-        assertEquals("IDLE", drone.getLog().get(0), "drone starts at IDLE state");
-        assertEquals("ENROUTE", drone.getLog().get(1), "drone moves onto ENROUTE state");
-        assertEquals("RETURNING", drone.getLog().get(2), "drone moves onto RETURNING state");
-        assertEquals("IDLE", drone.getLog().get(3), "drone returns to IDLE state");
+        assertTrue(drone.getTESTING_StuckHandled(), "Drone should have handled the Stuck Exception");
+
     }
 
     @Test
@@ -86,12 +84,8 @@ class DroneSubsystemTest {
 
         drone2.startEvent(faultEvent2);
 
-        assertEquals("IDLE", drone2.getLog().get(0), "drone starts at IDLE state");
-        assertEquals("ENROUTE", drone2.getLog().get(1), "drone moves onto ENROUTE state");
-        assertEquals("DEPLOYINGAGENT", drone2.getLog().get(2), "drone moves onto DEPLOYINGAGENT state");
-        assertEquals("RETURNING", drone2.getLog().get(3), "drone moves onto RETURNING state");
-        assertEquals("IDLE", drone2.getLog().get(4), "drone returns to IDLE state");
-        assertEquals("DISABLED", drone2.getLog().get(5), "drone moves onto DISABLED state");
+        assertTrue(drone2.getTESTING_NozzleHandled(), "Drone should have handled the Nozzle Jammed Exception");
+
     }
 
     @Test

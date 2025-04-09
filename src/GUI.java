@@ -239,7 +239,7 @@ public class GUI extends JFrame {
                 g2d.drawLine(x2, y2, x1, y2);
                 g2d.drawLine(x1, y2, x1, y1);
                 if(currentFires.get(zone.get(4)) > 0) {
-                    g2d.setColor(Color.decode("#ff2c2c"));
+                    g2d.setColor(Color.decode("#f94449"));
 //                    g2d.setColor(Color.RED);
                     g2d.fillRect(x1, y1, x2-x1, y2-y1);
                     g2d.setColor(Color.BLUE);

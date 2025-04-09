@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Scheduler {
@@ -16,7 +18,10 @@ public class Scheduler {
     public int mostRecentReceivedSocket = 0;
     private DatagramSocket sendSocket, receiveSocket, acceptSocket;
     public ArrayList<String> log;
-    List<Zone> allZones;
+    private Map<String, String> fireEventsStartTimes;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+
+
 
     public Boolean TESTING_rejectionHandled;
 
@@ -27,6 +32,7 @@ public class Scheduler {
         eventList = new LinkedList<>();
         current = null;
         log = new ArrayList<>();
+        fireEventsStartTimes = new HashMap<>();
         //Set up the sockets
         try {
             sendSocket = new DatagramSocket(6000);
@@ -36,6 +42,7 @@ public class Scheduler {
             se.printStackTrace();
         }
         TESTING_rejectionHandled = false;
+        SchedulerLogger.clearLogFile();
     }
 
 
@@ -71,7 +78,7 @@ public class Scheduler {
             String recMsg = new String (receivePacket.getData(), 0, receivePacket.getLength());
             mostRecentReceivedSocket = receivePacket.getPort();
             //If info is from FIS
-            if(receivePacket.getPort() == 5999){
+            if(receivePacket.getPort() == 5999) {
                 //Convert into FireEvent
                 String[] info = recMsg.split(",");
                 if (info.length == 6) {
@@ -83,8 +90,10 @@ public class Scheduler {
                     FireEvent newEvent = new FireEvent(time, zoneID, type, severity, fault);
 
                     //Print that the event was received with its info
-                    System.out.println("Received: " + newEvent +" from Fire Incident Subsystem");
+                    System.out.println("Received: " + newEvent + " from Fire Incident Subsystem");
                     //Add to the event queue
+                    fireEventsStartTimes.put(time, LocalDateTime.now().format(formatter));
+                    SchedulerLogger.logEvent("Received Event", newEvent);
                     addEvent(newEvent);
                 }
 
@@ -92,6 +101,26 @@ public class Scheduler {
             }else if(receivePacket.getPort() == 5001 || receivePacket.getPort() == 5002 || receivePacket.getPort() == 5003){
                 System.out.println("\nNew message from Drone on port " + receivePacket.getPort());
                 System.out.print(recMsg + "\n");
+            }
+            if(recMsg.contains("EventComplete")){
+                String[] parts = recMsg.split(";");
+                String fireEventEndTime = parts[1];
+                String[] info = parts[2].split(","); //the event
+                if (info.length == 6) {
+                    String time = info[0];
+                    int zoneID = Integer.parseInt(info[1]);
+                    String type = info[2];
+                    String severity = info[3];
+                    String fault = info[4];
+                    FireEvent newEvent = new FireEvent(time, zoneID, type, severity, fault);
+
+                    SchedulerLogger.logEventGivenTimestamp(parts[1], "Event Handled", newEvent);
+
+                    SchedulerLogger.logEventTimeDifference(fireEventsStartTimes.get(time), fireEventEndTime, newEvent);
+
+                }
+
+
             }
         } catch (IOException e) { System.out.println("Error Scheduler Receiving");}
     }

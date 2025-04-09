@@ -3,6 +3,8 @@ import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.net.*;
 import java.util.Deque;
@@ -35,6 +37,7 @@ public class DroneSubsystem {
     private int numberOfDrones = 10;
     private List<Zone> allZones;
     private GUI gui;
+
 
 
     /**
@@ -362,8 +365,8 @@ public class DroneSubsystem {
         private double slope;
         private double y_intercept;
         private boolean dir; // for calculating coordinates: true upwards, false is downwards
-        private DroneLogger droneLogger;
         private int totalAgentSprayed;
+        private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
         //agent tank
         private int tank;
@@ -389,7 +392,6 @@ public class DroneSubsystem {
             tank = TANK_MAX;
             log = new ArrayList<>();
             log.add("IDLE");
-            droneLogger = new DroneLogger();
 
             eventQueue = new LinkedList<>();
             totalAgentSprayed = 0;
@@ -697,6 +699,19 @@ public class DroneSubsystem {
 
                 } else {
                     gui.removeFire(currentEvent.getZoneID());
+
+
+                    String fireEventEndTime = LocalDateTime.now().format(formatter);
+                    String toSend = "EventComplete;"+ fireEventEndTime+";"+currentEvent.summarizeEvent();
+                    //send metric back to scheduler for logging
+                    byte[] outData = new byte[100];
+                    outData = toSend.getBytes();
+                    try{
+                        DatagramPacket sendEvent = new DatagramPacket(outData, toSend.length(), InetAddress.getLocalHost(), 6001);
+                        droneSocket.send(sendEvent);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 returnToBase();
 

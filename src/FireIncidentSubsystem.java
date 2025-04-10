@@ -21,13 +21,13 @@ public class FireIncidentSubsystem {
 
 
     /**
-     * Constructor
+     * Constructor For FireIncidentSubsystem
      *
      */
     public FireIncidentSubsystem() {
         EOF = false;
         allEvents = new ArrayList<>();
-        simulation = new Simulation(0, this);
+        simulation = new Simulation(4, this);
         try {
             FISSocket = new DatagramSocket(5999);
         } catch (SocketException e) {}

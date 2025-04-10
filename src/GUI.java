@@ -19,7 +19,9 @@ public class GUI extends JFrame {
 
     private ConcurrentHashMap<String, DroneSubsystem.Drone.droneState> droneStates = new ConcurrentHashMap<>();
 
-
+    /**
+     * Contructor for the GUI. Sets up mapPanel with zones, labels, panels and text areas
+     */
     public GUI() {
         setVisible(true);
         //update max width and height if needed
@@ -33,12 +35,12 @@ public class GUI extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Create the map panel
+        //MAP PANEL
         mapPanel = new MapPanel();
         mapPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         mainPanel.add(mapPanel, BorderLayout.CENTER);
 
-        //panel on the right
+        //RIGHT PANEL
         JPanel controlPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -86,21 +88,40 @@ public class GUI extends JFrame {
         faultTextArea.append("No Faults Detected\n");
     }
 
+    /**
+     * Add a fire to the screen in zone zId
+     * @param zId - zone to add fire too
+     */
     public void addFire(int zId){
         mapPanel.changeZoneFire(zId, 1);
     }
 
+    /**
+     * Remove a fire from the screen in zone zId
+     * @param zId - zone to remove fire from
+     */
     public void removeFire(int zId){
         mapPanel.changeZoneFire(zId, -1);
     }
 
+    /**
+     * display fault in the faultTextArea
+     * @param fault - string fault to display
+     */
     public void displayFault(String fault){
         faultTextArea.append(fault + "\n");
     }
+
+    /**
+     * Display that the fault has been handled to the faultTextArea
+     */
     public void displayFaultReset(){
         faultTextArea.append("Fault Handled\n");
     }
 
+    /**
+     * Refresh the drone status on the right sidebar
+     */
     private void refreshDroneStatusDisplay() {
         droneStatusPanel.removeAll(); // Clear existing entries
         droneStatusPanel.removeAll();
@@ -132,6 +153,10 @@ public class GUI extends JFrame {
         droneStatusPanel.repaint();
     }
 
+    /**
+     * Update the zone dimensions in the mapPanel
+     * @param zoneList
+     */
     public void updateDimensions(List<Zone> zoneList) {
         for(Zone z : zoneList){
             if(z.getEndX() > MAX_WIDTH) {MAX_WIDTH = z.getEndX()+5;}
@@ -139,6 +164,10 @@ public class GUI extends JFrame {
         }
     }
 
+    /**
+     * Add coords for each zone for the map panel
+     * @param zoneList
+     */
     public void addCoords(List<Zone> zoneList) {
         for(Zone z : zoneList){
             mapPanel.addZone(z.getZoneId(), z.getStartX(), z.getStartY(), z.getEndX(), z.getEndY());
@@ -146,22 +175,29 @@ public class GUI extends JFrame {
         mapPanel.repaint();
     }
 
-    public void updateDrone(String id, int x, int y, DroneSubsystem.Drone.droneState d) {
+    /**
+     * update drone location in the map panel
+     * @param id
+     * @param x
+     * @param y
+     */
+    public void updateDrone(String id, int x, int y) {
         mapPanel.updateDroneLocation(id, x, y);
+    }
+
+    /**
+     * update drone status on the sidebar
+     * @param id
+     * @param d
+     */
+    public void updateDroneStatus(String id, DroneSubsystem.Drone.droneState d) {
         droneStates.put(id, d);
         refreshDroneStatusDisplay();
     }
 
-    public void updateDrone(String id, DroneSubsystem.Drone.droneState d){
-        droneStates.put(id, d);
-        refreshDroneStatusDisplay();
-    }
-
-    public boolean getLogPressed() {
-        return getLogPressed;
-    }
-
-    // Custom panel for drawing the map
+    /**
+     * Custom panel for drawing the map
+     */
     private class MapPanel extends JPanel {
         private List<List<Integer>> zones = new ArrayList<>();
         private ConcurrentHashMap<String, List<Integer>> droneLocations = new ConcurrentHashMap<>();
@@ -240,16 +276,9 @@ public class GUI extends JFrame {
                 g2d.drawLine(x1, y2, x1, y1);
                 if(currentFires.get(zone.get(4)) > 0) {
                     g2d.setColor(Color.decode("#f94449"));
-//                    g2d.setColor(Color.RED);
                     g2d.fillRect(x1, y1, x2-x1, y2-y1);
                     g2d.setColor(Color.BLUE);
                 }
-//                if(currentFires.get(zone.get(4)) == 0) {
-//                    g2d.setColor(Color.WHITE);
-//                    g2d.fillRect(x1, y1, x2-x1, y2-y1);
-//                    g2d.setColor(Color.BLUE);
-//                }
-
             }
 
             //fill drones

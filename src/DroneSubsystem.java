@@ -41,6 +41,8 @@ public class DroneSubsystem {
     private Boolean TESTING_StuckHandled;
     private Boolean TESTING_NozzleHandled;
 
+    int overflowEventsDrone;
+
     /**
      * Constructor for the Drone Subsystem
      *
@@ -49,7 +51,6 @@ public class DroneSubsystem {
     public DroneSubsystem(String name) {
         this.name = name;
 
-        //droneState state = droneState.IDLE; //Starting state is idle
         droneList = new ArrayList<>();
         masterDroneList = new ArrayList<>();
         current = null;
@@ -72,8 +73,13 @@ public class DroneSubsystem {
             gui.setVisible(true);
             gui.addCoords(allZones);
         });
+
+        overflowEventsDrone = 0;
     }
 
+    /**
+     * Read all the zones from the CSV file and turn them into zone objects
+     */
     public void readZones(){
         //Try to read the csv
         try (BufferedReader reader = new BufferedReader(new FileReader(zoneFilePath))) {
@@ -99,6 +105,11 @@ public class DroneSubsystem {
         }
     }
 
+    /**
+     * getter for the zone with a specified id int
+     * @param id
+     * @return z - zone object
+     */
     private Zone getZone(int id){
         for (Zone z : allZones){
             if(z.getZoneId() == id){
@@ -109,6 +120,10 @@ public class DroneSubsystem {
         return null;
     }
 
+    /**
+     * Testing method
+     * Used to close all sockets in the subsystem
+     */
     public void TESTING_closeSockets(){
         subsystemSocket.close();
         droneSendSocket.close();
@@ -128,7 +143,8 @@ public class DroneSubsystem {
             //Add drones to the List (drones at the base, idle)
             droneList.add(drone);
             masterDroneList.add(drone);
-            gui.updateDrone(id, 0, 0, drone.state);
+            gui.updateDrone(id, 0, 0);
+            gui.updateDroneStatus(id, drone.state);
 
             //Start the threads
             Thread d = new Thread(drone);
@@ -170,9 +186,12 @@ public class DroneSubsystem {
                             throw new DroneNetworkFailure("Bad Event message..");
                         }
 
+                        //if the fire is new, add it on the GUI
                         if(receivePacket.getPort() == 6000){
                             gui.addFire(zoneID);
                         }
+
+                        //assign this event to a drone
                         assignDrone(receiveString);
                     }
 
@@ -197,62 +216,52 @@ public class DroneSubsystem {
 
 
     /**
-     * Assign a drone an event given by the scheduler, and remove from the list of available drones
+     * Assign a drone an event given by the scheduler
+     * handles re-route, and assigning to a specific drone. Cycles through each drone in the list to spread load
      *
      * @throws InterruptedException
      */
     public void assignDrone(String eventInfo) throws InterruptedException {
         FireEvent newEvent = convertStringtoFireEvent(eventInfo);
 
-        // Find the queue length of the drone with the least events
-        int lowestNumEvents = 0;
-        if (!droneList.isEmpty()) lowestNumEvents = droneList.get(0).eventQueue.size();
-        for (Drone drone : droneList) {
-            if (drone.eventQueue.size() < lowestNumEvents) lowestNumEvents = drone.eventQueue.size();
-        }
-
-        // Check if the event is along the route for each drone
-        for (Drone drone : droneList) {
-            if (drone.passZone(newEvent.getZone()) && drone.eventQueue.size() < lowestNumEvents + 2){
-
-                // skip if drone has a higher severity event underway
-                if (drone.currentEvent != null && drone.currentEvent.getSeverityLevel() > (newEvent.getSeverityLevel())) {
-                    continue;
+        //Test if re-route available
+        for(Drone d : masterDroneList){
+            if(d.state == Drone.droneState.ENROUTE){
+                if(d.passZone(newEvent.getZone()) && d.currentEvent.getSeverity().equals(newEvent.getSeverity())){
+                    d.eventQueue.addFirst(d.currentEvent);
+                    d.currentEvent = newEvent;
+                    d.currentEventChanged = true;
+                    return;
                 }
-
-                // Reassign previous currentEvent to the drone's eventQueue
-                if (drone.currentEvent != null && drone.currentEvent.getSeverityLevel() == (newEvent.getSeverityLevel()))
-                {
-                    drone.eventQueue.addFirst(drone.currentEvent);
-                } else {
-                    drone.eventQueue.addLast(drone.currentEvent);
-                }
-
-                // Assign the new event as the currentEvent
-                drone.currentEvent = newEvent;
-                drone.currentEventChanged = true;
-
-                System.out.println("Event: " + drone.currentEvent.toString()  + " is within path of " + drone.getDroneID());
-                System.out.println(drone.getDroneID() + " is reassigned to Event: " + drone.currentEvent.toString());
-                return;
             }
         }
 
-        for (Drone drone : droneList) {
-            if (drone.state == Drone.droneState.IDLE) {
-                int port = 5000 + drone.droneNum;
-                droneList.remove(drone);
-                try {
-                    byte[] buffer = eventInfo.getBytes();
-                    DatagramPacket fwdPacket = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), port);
-                    droneSendSocket.send(fwdPacket);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
+        //prevent disabled drones from getting an event
+        while(masterDroneList.get(overflowEventsDrone).state == Drone.droneState.DISABLED){
+            if(overflowEventsDrone < numberOfDrones-1){
+                overflowEventsDrone++;
+            } else {
+                overflowEventsDrone = 0;
             }
         }
-        System.out.println("Cant assign drone");
+
+        int port = 5000 + overflowEventsDrone + 1;
+        System.out.println("picked drone " + overflowEventsDrone);
+
+        try {
+            byte[] buffer = eventInfo.getBytes();
+            DatagramPacket fwdPacket = new DatagramPacket(buffer, buffer.length, InetAddress.getLocalHost(), port);
+            droneSendSocket.send(fwdPacket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(overflowEventsDrone < numberOfDrones-1){
+            overflowEventsDrone++;
+        } else {
+            overflowEventsDrone = 0;
+        }
+
     }
 
     /**
@@ -270,7 +279,8 @@ public class DroneSubsystem {
         String severity = info[3];
         String fault = info[4];
         Zone zone = getZone(zoneID);
-        return new FireEvent(time, zoneID, type, severity, fault, zone);
+        int agentNeeded = Integer.parseInt(info[5]);
+        return new FireEvent(time, zoneID, type, severity, fault, zone, agentNeeded);
     }
 
     /**
@@ -288,21 +298,6 @@ public class DroneSubsystem {
      */
     public int getDroneNum() {
         return numberOfDrones;
-    }
-
-    /**
-     * For use by drones when they complete their event handling
-     *
-     * @param drone
-     */
-    public void returnDroneToList(Drone drone) {
-        //When a drone returns it adds itself back to the list
-        droneList.add(drone);
-    }
-
-    public void removeDroneFromList(Drone drone) {
-        //When a drone returns it adds itself back to the list
-        droneList.remove(drone);
     }
 
     /**
@@ -405,6 +400,9 @@ public class DroneSubsystem {
             }
         }
 
+        /**
+         * Testing method to close this drones socket
+         */
         public void TESTING_closeSocket(){
             this.droneSocket.close();
         }
@@ -497,11 +495,14 @@ public class DroneSubsystem {
             return waterUsed;
         }
 
+        /**
+         * The drone's socket waits on receive to receive a FireEvent for the drone
+         * @return
+         */
         public FireEvent waitForSignal(){
             byte[] eventData = new byte[100];
             DatagramPacket eventPacket = new DatagramPacket(eventData, eventData.length);
             try {
-//                droneSocket.setSoTimeout(100);
                 this.droneSocket.receive(eventPacket);
                 String receiveString = new String(eventPacket.getData(), 0, eventPacket.getLength());
 
@@ -532,7 +533,6 @@ public class DroneSubsystem {
          */
         private void fightFire() throws InterruptedException {
             enRoute(); //State 2 from idle, carries into next states, beginning the state machine
-            returnDroneToList(this);
         }
 
         /**
@@ -552,6 +552,7 @@ public class DroneSubsystem {
                 sendStatus();
                 System.out.println(DroneID + " is en route to Zone " + currentEvent.getZoneID());
                 travelTime = methodToCalculateTravelTime();
+                gui.updateDroneStatus(DroneID, state);
                 while (x != destX && y != destY) {
 //                     Check if event has been reassigned
                     if (currentEventChanged){
@@ -565,12 +566,12 @@ public class DroneSubsystem {
                     x = coords[0];
                     y = coords[1];
 //                    System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
-                    gui.updateDrone(DroneID, x, y, state);
+                    gui.updateDrone(DroneID, x, y);
                     Thread.sleep(500);
                 }
 
                 if (currentEvent.getFault().equals("Drone Stuck")) {
-                    gui.displayFault(currentEvent.getFault());
+                    gui.displayFault(currentEvent.getFault() + " - " + DroneID);
                     throw new DroneStuck(DroneID + " is stuck. Returning and reassigning event");
                 }
 
@@ -685,13 +686,15 @@ public class DroneSubsystem {
                 System.out.println(DroneID + " arrived at Zone " + currentEvent.getZoneID() + ", attempting to deploy agent");
 
                 if (currentEvent.getFault().equals("Nozzle Jammed")) {
-                    gui.displayFault(currentEvent.getFault());
+                    gui.displayFault(currentEvent.getFault() + " - " + DroneID);
                     throw new DroneNozzleStuck(DroneID + "'s Nozzle is stuck. Disabling");
                 }
                 DroneLogger.logEvent("Beginning to deploy agent", droneNum);
 
                 int agentUsed = putOutFire(currentEvent);
                 System.out.println(DroneID + " at Zone " + currentEvent.getZoneID() + ", deployed " + agentUsed + "L of agent");
+
+                gui.updateDroneStatus(DroneID, state);
 
                 Thread.sleep((agentUsed / 10) * 1000L);
                 DroneLogger.logEvent("Deployed " + agentUsed + "L Agent", droneNum);
@@ -700,7 +703,6 @@ public class DroneSubsystem {
                 //Go to next state
                 if(currentEvent.getNeededToPutOut() != 0){
                     System.out.println(DroneID + " Should be handling this event next " + currentEvent);
-//                    eventQueue.addFirst(currentEvent); //legacy; keep for now
                     sendEventToDroneSubsystem(currentEvent);
 
                 } else {
@@ -731,10 +733,8 @@ public class DroneSubsystem {
                 state = droneState.DISABLED;
                 log.add("DISABLED");
                 sendStatus();
-                gui.updateDrone(DroneID, state);
-                //for(String n : log){
-                // System.out.println(n);
-                //}
+
+                gui.updateDroneStatus(DroneID, state);
                 //set the value for testing
                 TESTING_NozzleHandled = true;
                 //RE-ENTER THE EVENT TO BE PROCESSED
@@ -779,13 +779,15 @@ public class DroneSubsystem {
             destY = 0;
             travelTime = methodToCalculateTravelTime();
 
+            gui.updateDroneStatus(DroneID, state);
+
             while (x != destX && y != destY) {
                 int[] coords = calculateNewCoordinates();
                 x = coords[0];
                 y = coords[1];
 //                System.out.printf("%s: going to (%d, %d), rn at (%d,%d)\n", DroneID, destX, destY, x, y);
 
-                gui.updateDrone(DroneID, x, y, state);
+                gui.updateDrone(DroneID, x, y);
                 Thread.sleep(500);
             }
 
@@ -794,11 +796,8 @@ public class DroneSubsystem {
             tank = TANK_MAX;
             state = droneState.IDLE;
             log.add("IDLE");
-//            currentEvent = null;
-            gui.updateDrone(DroneID, state);
+            gui.updateDroneStatus(DroneID, state);
             DroneLogger.logEvent("Arrived at Base (0,0)", droneNum);
-
-            //sendStatus();
         }
 
         /**

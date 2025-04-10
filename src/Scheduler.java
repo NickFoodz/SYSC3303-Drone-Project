@@ -99,29 +99,27 @@ public class Scheduler {
                 }
 
                 //Otherwise if from a drone print it directly to the terminal
-            }else if(receivePacket.getPort() == 5001 || receivePacket.getPort() == 5002 || receivePacket.getPort() == 5003){
-                System.out.println("\nNew message from Drone on port " + receivePacket.getPort());
-                System.out.print(recMsg + "\n");
-            }
-            if(recMsg.contains("EventComplete")){
-                String[] parts = recMsg.split(";");
-                String fireEventEndTime = parts[1];
-                String[] info = parts[2].split(","); //the event
-                if (info.length == 6) {
-                    String time = info[0];
-                    int zoneID = Integer.parseInt(info[1]);
-                    String type = info[2];
-                    String severity = info[3];
-                    String fault = info[4];
-                    FireEvent newEvent = new FireEvent(time, zoneID, type, severity, fault);
+            }else if(receivePacket.getPort() > 5000 && receivePacket.getPort() < 5020){
+                if(!recMsg.contains("EventComplete")){
+                    System.out.println("\nNew message from Drone on port " + receivePacket.getPort());
+                    System.out.print(recMsg + "\n");
+                } else {
+                    String[] parts = recMsg.split(";");
+                    String fireEventEndTime = parts[1];
+                    String[] info = parts[2].split(","); //the event
+                    if (info.length == 6) {
+                        String time = info[0];
+                        int zoneID = Integer.parseInt(info[1]);
+                        String type = info[2];
+                        String severity = info[3];
+                        String fault = info[4];
+                        FireEvent newEvent = new FireEvent(time, zoneID, type, severity, fault);
 
-                    SchedulerLogger.logEventGivenTimestamp(parts[1], "Event Handled", newEvent);
+                        SchedulerLogger.logEventGivenTimestamp(parts[1], "Event Handled", newEvent);
 
-                    SchedulerLogger.logEventTimeDifference(fireEventsStartTimes.get(time), fireEventEndTime, newEvent);
-
+                        SchedulerLogger.logEventTimeDifference(fireEventsStartTimes.get(time), fireEventEndTime, newEvent);
+                    }
                 }
-
-
             }
         } catch (IOException e) { System.out.println("Error Scheduler Receiving");}
     }

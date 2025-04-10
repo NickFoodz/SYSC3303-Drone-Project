@@ -94,6 +94,7 @@ Elton Kong
 Nick Fuda
 - Code review and debug
 - Timing Diagrams and Report
+- Video, simulation optimization 
 
 Hanyoung Chung (John)
 - Code review, debugging, test classes and test cases
